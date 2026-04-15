@@ -1,13 +1,65 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Grotesk:wght@300;400;600;700&display=swap');
+
+:root {
+  --primary: #9d50ff;
+  --primary-glow: rgba(157, 80, 255, 0.5);
+  --bg-space: #050510;
+  --grid-color: rgba(0, 255, 204, 0.15);
+  --text-neon: #00ffcc;
+  --text-main: #e0e0f5;
+  --text-muted: #8080a0;
+  --error: #ff2d55;
+  --success: #00ffa3;
+  --card-compact-bg: rgba(10, 10, 30, 0.8);
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg-space);
+  color: var(--text-main);
+  line-height: 1.5;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+h1, h2, h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+strong, .bold {
+  font-weight: 700;
+  color: var(--text-neon);
+}
+
+a {
+  color: var(--text-neon);
+  text-decoration: none;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Custom scrollbar for that spacy feel */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-space);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 10px;
 }
