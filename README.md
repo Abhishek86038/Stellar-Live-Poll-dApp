@@ -1,7 +1,6 @@
 # Stellar Live Poll dApp 🗳️
 
 ## 🏆 Yellow Belt Submission Links
-✅ **Live demo link:** [Insert Vercel/Netlify URL here]
 
 
 ✅ **Screenshot (Wallet options available):**  <img width="1919" height="932" alt="image" src="https://github.com/user-attachments/assets/19f42d4a-02ea-4fef-a126-ef16eaa45eae" />
