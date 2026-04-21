@@ -2,9 +2,13 @@
 
 ## 🏆 Yellow Belt Submission Links
 ✅ **Live demo link:** [Insert Vercel/Netlify URL here]
+
+
 ✅ **Screenshot (Wallet options available):**  <img width="1919" height="932" alt="image" src="https://github.com/user-attachments/assets/19f42d4a-02ea-4fef-a126-ef16eaa45eae" />
 )
 ✅ **Deployed contract address:** `CACPWBSL75BAJQVP5ULZYSIHQ572DHXJNJ2AF3O3U3LTJQ6GG6FNTAA2`
+
+
 ✅ **Transaction hash of a contract call:** `e81c8c0ad2b9e5e76f5ad25b6b8420c01705f260016c09202bf3c7a3f5a99194` *(Verifiable on Stellar Explorer)*
 
 ---
