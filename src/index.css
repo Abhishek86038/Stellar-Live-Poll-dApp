@@ -1,16 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Grotesk:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --primary: #9d50ff;
-  --primary-glow: rgba(157, 80, 255, 0.5);
-  --bg-space: #050510;
-  --grid-color: rgba(0, 255, 204, 0.15);
-  --text-neon: #00ffcc;
-  --text-main: #e0e0f5;
-  --text-muted: #8080a0;
-  --error: #ff2d55;
-  --success: #00ffa3;
-  --card-compact-bg: rgba(10, 10, 30, 0.8);
+  /* Exact Stellar Brand Colors required */
+  --primary: #0066CC;
+  --primary-hover: #004d99;
+  --success: #4CAF50;
+  --success-bg: #e8f5e9;
+  --error: #F44336;
+  --error-bg: #ffebee;
+  --warning: #ff9800;
+  
+  /* Modern clean layout variables */
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-light: #e2e8f0;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 * {
@@ -20,46 +28,31 @@
 }
 
 body {
-  font-family: 'Outfit', sans-serif;
-  background-color: var(--bg-space);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-main);
   color: var(--text-main);
-  line-height: 1.5;
-  overflow-x: hidden;
-  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3 {
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-strong, .bold {
-  font-weight: 700;
-  color: var(--text-neon);
-}
-
-a {
-  color: var(--text-neon);
-  text-decoration: none;
+h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
-  text-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+  color: var(--text-main);
 }
 
 button {
-  cursor: pointer;
   font-family: inherit;
+  cursor: pointer;
+  border: none;
 }
 
-/* Custom scrollbar for that spacy feel */
-::-webkit-scrollbar {
-  width: 6px;
+a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
 }
-::-webkit-scrollbar-track {
-  background: var(--bg-space);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--primary);
-  border-radius: 10px;
+
+a:hover {
+  text-decoration: underline;
 }

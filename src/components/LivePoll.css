@@ -1,0 +1,228 @@
+.live-poll-card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-md);
+  padding: 2.5rem;
+  transition: box-shadow 0.3s ease;
+}
+
+.poll-question {
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 2rem;
+  line-height: 1.4;
+  letter-spacing: -0.5px;
+}
+
+.poll-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.poll-option {
+  background: var(--bg-main);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.poll-option:hover {
+  border-color: #99c2ff;
+  background: #f0f7ff;
+}
+
+.poll-option.selected {
+  border-color: var(--primary);
+  background: #e6f0fa;
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.option-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.option-input-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.option-input-group input[type="radio"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+  outline: none;
+  position: relative;
+  cursor: pointer;
+  background: transparent;
+  transition: border 0.2s;
+}
+
+.option-input-group input[type="radio"]:checked {
+  border-color: var(--primary);
+}
+
+.option-input-group input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--primary);
+}
+
+.option-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.option-votes {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: var(--border-light);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: var(--primary);
+  border-radius: 3px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-vote {
+  width: 100%;
+  background-color: var(--primary);
+  color: white;
+  font-size: 1.1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 102, 204, 0.2);
+}
+
+.btn-vote:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+  box-shadow: 0 4px 8px rgba(0, 102, 204, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-vote:disabled {
+  background-color: #cbd5e1;
+  color: #f8fafc;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.tx-status-container {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.status-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  font-weight: 500;
+  font-size: 1rem;
+  padding: 1.25rem;
+  border-radius: 8px;
+}
+
+.status-msg.pending {
+  color: var(--text-main);
+  background: var(--bg-main);
+  border: 1px solid var(--border-light);
+}
+
+.status-msg.success {
+  color: #2e7d32;
+  background: var(--success-bg);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.status-msg.error {
+  color: #c62828;
+  background: var(--error-bg);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--border-light);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+.tx-link {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+  display: inline-block;
+}
+
+.tx-link:hover {
+  text-decoration: underline;
+}
+
+.btn-retry {
+  padding: 0.5rem 1.25rem;
+  background: transparent;
+  color: var(--error);
+  border: 1px solid var(--error);
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-retry:hover {
+  background: var(--error-bg);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

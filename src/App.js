@@ -1,80 +1,42 @@
-import React, { useState, useEffect, useCallback } from "react";
-import "./App.css";
-import Freighter from "./components/Freighter";
-import SplitBill from "./components/SplitBill";
-import { getAccountBalance } from "./services/stellar";
+import React, { useState } from 'react';
+import './App.css';
+import WalletConnect from './components/WalletConnect';
+import LivePoll from './components/LivePoll';
 
 function App() {
-  const [address, setAddress] = useState(null);
-  const [balance, setBalance] = useState("0");
-  const [loadingBalance, setLoadingBalance] = useState(false);
-
-  const fetchBalance = useCallback(async (publicKey) => {
-    if (!publicKey) return;
-    setLoadingBalance(true);
-    try {
-      const bal = await getAccountBalance(publicKey);
-      setBalance(bal);
-    } catch (error) {
-      console.error("Failed to fetch balance:", error);
-    } finally {
-      setLoadingBalance(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (address) {
-      fetchBalance(address);
-    } else {
-      setBalance("0");
-    }
-  }, [address, fetchBalance]);
+  // Top-level state management for Wallet Connection
+  // It trickles down as props to the LivePoll component so it can perform transactions
+  const [walletAddress, setWalletAddress] = useState(null);
 
   return (
     <div className="app-container">
-      <header>
-        <h1><strong>Stellar</strong> Split</h1>
-        <p className="subtitle">Instant <strong>splitting</strong> on the <strong>Stellar Testnet</strong></p>
+      <header className="app-header">
+        <h1>Stellar Live Poll</h1>
+        <p className="subtitle">Journey to Mastery ‒ Yellow Belt</p>
       </header>
 
-      <Freighter 
-        address={address} 
-        setAddress={setAddress} 
-        onConnect={fetchBalance}
-      />
+      <main className="app-main-grid">
+        {/* Left column / Top on mobile: Wallet Integration */}
+        <section className="sidebar-section">
+          <WalletConnect onConnect={setWalletAddress} />
+          
+          <div className="info-card glass-panel">
+            <h3>How to use</h3>
+            <ol className="instructions-list">
+              <li>Connect your <strong>Stellar Freighter</strong> wallet on the Testnet.</li>
+              <li>Select your response from the options provided.</li>
+              <li>Click <strong>Cast Vote</strong> and sign the Soroban transaction inside Freighter.</li>
+              <li>Wait for the network to validate your vote onto the ledger.</li>
+            </ol>
+          </div>
+        </section>
 
-      {address && (
-        <div className="card balance-card">
-          <p className="balance-label">Your <strong>Balance</strong></p>
-          <p className={`balance-amount ${loadingBalance ? "loading-text" : ""}`}>
-            {parseFloat(balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 7 })} <strong>XLM</strong>
-          </p>
-          <button 
-            className="btn btn-outline" 
-            style={{ marginTop: '1rem', width: 'auto' }}
-            onClick={() => fetchBalance(address)}
-            disabled={loadingBalance}
-          >
-            {loadingBalance ? "Refreshing..." : "Sync Balance"}
-          </button>
-        </div>
-      )}
-
-      {address ? (
-        <SplitBill 
-          senderAddress={address} 
-          balance={balance} 
-          refreshBalance={() => fetchBalance(address)} 
-        />
-      ) : (
-        <div className="card" style={{ textAlign: 'center' }}>
-          <p>Please connect your Freighter wallet to start splitting bills.</p>
-        </div>
-      )}
-
-      <footer style={{ marginTop: '3rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-        Built with Stellar SDK & Freighter API • Testnet Only
-      </footer>
+        {/* Right column / Bottom on mobile: The core Poll DApp */}
+        <section className="main-content-section">
+          {/* Passes wallet context down allowing the poll to initiate signed blockchain executions */}
+          <LivePoll walletAddress={walletAddress} />
+        </section>
+      </main>
     </div>
   );
 }
