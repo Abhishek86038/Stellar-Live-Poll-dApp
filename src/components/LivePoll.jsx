@@ -64,9 +64,14 @@ const LivePoll = ({ walletAddress }) => {
       fetchResults(); // Refresh results immediately
     } catch (err) {
       setTxStatus('error');
-      let msg = err.message || 'Transaction failed';
-      if (msg.toLowerCase().includes('already voted') || msg.includes('Simulation failed')) {
-        msg = "You have already voted in this poll! (One vote per address)";
+      let msg = err.message || String(err);
+      
+      // Detection for "Already Voted" panic in Soroban
+      if (msg.includes('Already voted') || 
+          msg.includes('UnreachableCodeReached') || 
+          msg.includes('InvalidAction') ||
+          msg.includes('simulation incorrect')) {
+        msg = "You have already voted in this poll! (One vote per address restriction)";
       }
       setErrorMsg(msg);
     } finally {
