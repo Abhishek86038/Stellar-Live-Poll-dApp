@@ -11,9 +11,9 @@ const RPC_URL = "https://soroban-testnet.stellar.org";
 const server = new rpc.Server(RPC_URL);
 
 // Contract IDs (to be filled after deployment)
-export const TOKEN_ID = process.env.REACT_APP_TOKEN_CONTRACT_ID || "";
-export const POOL_ID = process.env.REACT_APP_POOL_CONTRACT_ID || "";
-export const POLL_ID = process.env.REACT_APP_POLL_CONTRACT_ID || "";
+export const TOKEN_ID = process.env.REACT_APP_XPOLL_TOKEN_CONTRACT_ID || "";
+export const POOL_ID = process.env.REACT_APP_LIQUIDITY_POOL_CONTRACT_ID || "";
+export const POLL_ID = process.env.REACT_APP_ADVANCED_POLL_CONTRACT_ID || "";
 
 const fetchXDR = async (contractId, method, args = []) => {
   try {
@@ -34,9 +34,12 @@ const fetchXDR = async (contractId, method, args = []) => {
 };
 
 export const getTokenBalance = async (address) => {
-  if (!TOKEN_ID) return 0;
-  // Implementation using stellar-sdk
-  return 1000; // Mock for initial UI setup
+  // Simulated balance for UI demo
+  if (!process.env.REACT_APP_XPOLL_TOKEN_CONTRACT_ID) {
+    return 1250; // Demo balance
+  }
+  // Real fetching logic would go here
+  return 0;
 };
 
 export const swapTokens = async (walletAddress, amount, isXPollToXlm) => {

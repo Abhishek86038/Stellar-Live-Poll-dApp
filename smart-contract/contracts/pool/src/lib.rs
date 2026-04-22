@@ -1,5 +1,5 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol, log, token};
+use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, Symbol, token};
 
 #[contracttype]
 pub enum DataKey {

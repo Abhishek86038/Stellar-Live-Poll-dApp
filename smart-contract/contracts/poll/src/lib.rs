@@ -1,5 +1,5 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol, Vec, String, log, panic_with_error};
+use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, Symbol, Vec, String};
 
 mod token {
     soroban_sdk::contractimport!(file = "../../target/wasm32-unknown-unknown/release/xpoll_token.wasm");

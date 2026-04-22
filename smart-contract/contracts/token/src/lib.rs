@@ -1,5 +1,5 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol, log};
+use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, Symbol, log};
 
 #[contracttype]
 pub enum DataKey {
@@ -29,7 +29,7 @@ impl XPollToken {
         env.storage().persistent().set(&key, &(current_balance + amount));
 
         env.events().publish(
-            (Symbol::new(&env, "TokenMinted"), to, amount),
+            (Symbol::new(&env, "TokenMinted"), to.clone(), amount),
             env.ledger().timestamp(),
         );
         log!(&env, "Minted {} tokens to {}", amount, to);
