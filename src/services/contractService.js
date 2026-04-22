@@ -1,20 +1,10 @@
 import * as StellarSdk from "@stellar/stellar-sdk";
 import { signTransaction } from "@stellar/freighter-api";
 
-/**
- * Universal Compatibility Layer for Stellar SDK (v14 and v15+)
- */
 const getRpcServer = (url) => {
-  // Try v15+ format (rpc namespace)
-  if (StellarSdk.rpc && StellarSdk.rpc.Server) {
-    return new StellarSdk.rpc.Server(url);
-  }
-  // Try v14 and below format (SorobanRpc namespace)
-  if (StellarSdk.SorobanRpc && StellarSdk.SorobanRpc.Server) {
-    return new StellarSdk.SorobanRpc.Server(url);
-  }
-  // Ultimate fallback
-  throw new Error("Compatible Stellar SDK RPC Server not found. Please check your dependencies.");
+  if (StellarSdk.rpc && StellarSdk.rpc.Server) return new StellarSdk.rpc.Server(url);
+  if (StellarSdk.SorobanRpc && StellarSdk.SorobanRpc.Server) return new StellarSdk.SorobanRpc.Server(url);
+  throw new Error("RPC Server not found");
 };
 
 export const server = getRpcServer("https://soroban-testnet.stellar.org");
@@ -36,32 +26,33 @@ export const buildTransaction = async (walletAddress, contractAddress, method, a
       .build();
 
     const simResult = await server.simulateTransaction(tx);
-    
-    // Safety check for simulation status
     const isSimError = (StellarSdk.rpc && StellarSdk.rpc.Api.isSimulationError(simResult)) || 
                        (StellarSdk.SorobanRpc && StellarSdk.SorobanRpc.Api.isSimulationError(simResult));
 
     if (isSimError) {
-        throw new Error(`Simulation failed: ${simResult.error || "Unknown error"}`);
+        throw new Error(`Simulation failed: ${simResult.error || "Execution reverted (Already voted?)"}`);
     }
 
-    // Universal assemble
     if (StellarSdk.rpc) return StellarSdk.rpc.assembleTransaction(tx, simResult).build();
     return StellarSdk.SorobanRpc.assembleTransaction(tx, simResult).build();
   } catch (error) {
-    console.error("buildTransaction Error:", error);
     throw error;
   }
 };
 
 export const submitToTestnet = async (signedXdr) => {
   try {
-    const transaction = StellarSdk.xdr.TransactionEnvelope.fromXDR(signedXdr, "base64");
+    // FIX: Safely handles both String and Object responses from Freighter
+    const xdrString = typeof signedXdr === 'string' ? signedXdr : (signedXdr.signedTransaction || signedXdr.xdr || signedXdr);
+    
+    if (typeof xdrString !== 'string') {
+        throw new Error("Invalid signed transaction format received from wallet");
+    }
+
+    const transaction = StellarSdk.TransactionBuilder.fromXDR(xdrString, NETWORK_PASSPHRASE);
     const sendResponse = await server.sendTransaction(transaction);
 
-    if (sendResponse.status === "ERROR") {
-      throw new Error(`Transaction rejected`);
-    }
+    if (sendResponse.status === "ERROR") throw new Error(`Transaction rejected`);
 
     let statusResponse;
     for (let i = 0; i < 15; i++) {
@@ -74,7 +65,6 @@ export const submitToTestnet = async (signedXdr) => {
     }
     throw new Error("Polling timeout");
   } catch (error) {
-    console.error("submitToTestnet Error:", error);
     throw error;
   }
 };
@@ -85,8 +75,12 @@ export const castVote = async (walletAddress, contractAddress, optionIndex) => {
     StellarSdk.nativeToScVal(optionIndex, { type: "u32" })
   ];
   const transaction = await buildTransaction(walletAddress, contractAddress, "vote", args);
-  const signedXdr = await signTransaction(transaction.toXDR(), { network: "TESTNET" });
-  return await submitToTestnet(signedXdr);
+  
+  // Get signature from Freighter
+  const signedResult = await signTransaction(transaction.toXDR(), { network: "TESTNET" });
+  
+  // Submit cleaned XDR
+  return await submitToTestnet(signedResult);
 };
 
 export const getResults = async (contractAddress) => {
@@ -104,7 +98,6 @@ export const getResults = async (contractAddress) => {
     if (!simResult.result || !simResult.result.retval) return [];
     return StellarSdk.scValToNative(simResult.result.retval);
   } catch (error) {
-    console.error("getResults Error:", error);
     return [];
   }
 };
