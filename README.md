@@ -267,7 +267,7 @@ The App natively locks to `http://localhost:3000`. Test connections strictly via
 ✅ **Naya Contract ID (Restricted Voting):** `CCPC6IAMNB3M5ULNYKIUYQAY7LD55J27MAK4F3D66WNHE7V5UA7DJMP3`  
 ✅ **Transaction Hash (First Voter):** `1ca6e1a86718253769ea82b58d7a8277a2b6cdcca185618424b3150811242c9c`  
 ✅ **Demo Video Link:** [Aapka Video Link Yahan Daalein]  
-✅ **Test Status:** 10/10 Tests Passing ([Screenshot Placeholder])
+✅ **Test Status:** ![alt text](image.png)
 
 ### 🚀 Level 3 - Advanced Feature Implementation
 - **Block-Level Anti-Double-Vote**: Humne smart contract (`lib.rs`) ko upgrade kiya hai Address-mapping storage use karne ke liye. Ab koi bhi ek account se 2 baar vote nahi kar sakta.

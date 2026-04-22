@@ -49,3 +49,5 @@ The "Split Bill Calculator" is a decentralized application (dApp) built on the S
 - **Error Handling**: Catch and display specific Stellar errors (e.g., `op_low_reserve`, `tx_bad_seq`).
 - **Clean Architecture**: Separate Stellar logic (Service layer) from UI components.
 - **Security**: Never store private keys; always use Freighter for signing.
+
+
