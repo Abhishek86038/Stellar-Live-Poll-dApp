@@ -55,7 +55,7 @@ npm test
 Total: 10 tests passing
 
 ## 📹 Demo Video
-[LINK: https://youtube.com/watch?v=YOUR_DEMO_VIDEO]
+https://youtu.be/oFeW8NX9Blw
 
 Duration: 1 minute
 
