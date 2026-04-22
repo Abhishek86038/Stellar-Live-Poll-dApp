@@ -137,7 +137,11 @@ export const castVote = async (walletAddress, contractAddress, optionIndex) => {
       throw new Error("Wallet not connected");
     }
 
-    const args = [nativeToScVal(optionIndex, { type: "u32" })];
+    // Normalize address for ScVal mapping
+    const voterScVal = nativeToScVal(walletAddress, { type: "address" });
+    const optionScVal = nativeToScVal(optionIndex, { type: "u32" });
+
+    const args = [voterScVal, optionScVal];
 
     const transaction = await buildTransaction(
       walletAddress, 
