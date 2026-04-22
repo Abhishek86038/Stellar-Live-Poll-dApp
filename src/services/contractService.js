@@ -67,7 +67,10 @@ export const castVote = async (walletAddress, contractAddress, optionIndex) => {
   const optionScVal = StellarSdk.nativeToScVal(Number(optionIndex), { type: "u32" });
 
   const transaction = await buildTransaction(addrStr, contractAddress, "vote", [voterScVal, optionScVal]);
-  const signed = await signTransaction(transaction.toXDR(), { network: "TESTNET" });
+  const signed = await signTransaction(transaction.toXDR(), { 
+    network: "TESTNET",
+    networkPassphrase: TESTNET_PASSPHRASE 
+  });
   return await submitToTestnet(signed);
 };
 
