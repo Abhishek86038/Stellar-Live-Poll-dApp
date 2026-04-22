@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './LivePoll.css';
 import * as contractService from '../services/contractService';
 
@@ -56,6 +56,7 @@ const LivePoll = ({ walletAddress }) => {
       return;
     }
     if (selectedOption === null) return;
+    if (pollStatus.is_closed) return;
 
     setIsVoting(true);
     setTxStatus('pending');
@@ -81,6 +82,36 @@ const LivePoll = ({ walletAddress }) => {
       setIsVoting(false);
     }
   };
+
+  const handleClosePoll = async () => {
+    if (!walletAddress) return;
+    try {
+      setIsVoting(true);
+      setTxStatus('pending');
+      const hash = await closePoll(walletAddress, null);
+      setTxStatus('success');
+      setTxHash(hash);
+      addToast('Poll successfully closed', 'success');
+      loadPollData();
+    } catch (error) {
+      setTxStatus('error');
+      setErrorMsg('Failed to close poll');
+      addToast('Closure failed', 'error');
+    } finally {
+      setIsVoting(false);
+    }
+  };
+
+  const getWinnerInfo = () => {
+    if (!pollStatus.is_closed || options.length === 0) return null;
+    let winner = options[0];
+    for (const opt of options) {
+      if (opt.votes > winner.votes) winner = opt;
+    }
+    return winner;
+  };
+
+  const winner = getWinnerInfo();
 
   return (
     <div className="live-poll-card glass-panel">

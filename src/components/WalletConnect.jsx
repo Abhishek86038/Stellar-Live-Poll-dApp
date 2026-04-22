@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { isConnected, requestAccess } from '@stellar/freighter-api';
-import albedo from '@albedo-link/intent';
+import React, { useState } from 'react';
 import './WalletConnect.css';
+import { useWallet } from '../hooks/useWallet';
+import { useLoadingState } from '../hooks/useLoadingState';
+import LoadingSpinner from './LoadingSpinner';
 
 const WalletConnect = ({ onConnect }) => {
-  const [walletAddress, setWalletAddress] = useState(null);
-  const [isWalletInstalled, setIsWalletInstalled] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { walletAddress, connect, disconnect } = useWallet();
+  const { isLoading, setIsLoading } = useLoadingState(false);
   const [error, setError] = useState('');
-  const [showModal, setShowModal] = useState(false); // Multi-wallet modal active state
+  const [showModal, setShowModal] = useState(false);
 
   const truncateAddress = (address) => {
     if (!address) return '';
@@ -17,75 +17,27 @@ const WalletConnect = ({ onConnect }) => {
     return `${addStr.slice(0, 6)}...${addStr.slice(-4)}`;
   };
 
-  useEffect(() => {
-    checkFreighter();
-  }, []);
-
-  const checkFreighter = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const connected = await isConnected();
-      setIsWalletInstalled(connected);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Generalized connection interface to handle routing multi-wallet requests
   const handleWalletSelect = async (walletType) => {
     setShowModal(false);
     setError('');
-    setLoading(true);
+    setIsLoading(true);
 
     if (walletType === 'freighter') {
-      try {
-        if (!isWalletInstalled) {
-          setError('Freighter wallet not found. Please install the extension.');
-          setLoading(false);
-          return;
-        }
-        
-        const pubKey = await requestAccess();
-        if (pubKey) {
-          setWalletAddress(pubKey);
-          if (onConnect) onConnect(pubKey);
-        } else {
-          setError('Connection rejected or no public key found.');
-        }
-      } catch (err) {
-        console.error(err);
-        setError('Wallet connection failed or was rejected.');
+      const pubKey = await connect();
+      if (pubKey) {
+        if (onConnect) onConnect(pubKey);
+      } else {
+        setError('Freighter wallet connection failed or rejected.');
       }
-    } else if (walletType === 'Albedo') {
-      try {
-        const res = await albedo.publicKey({});
-        if (res.pubkey) {
-          setWalletAddress(res.pubkey);
-          if (onConnect) onConnect(res.pubkey);
-        }
-      } catch (err) {
-        console.error(err);
-        setError('Albedo login cancelled or failed.');
-      }
-    } else if (walletType === 'xBull') {
-        // basic xBull extension trigger fallback if detected
-        if (window.xBullSDK) {
-           setError("xBull SDK detected but manual bridge requires setup.");
-        } else {
-           setError("xBull wallet extension not found in browser.");
-        }
     } else {
         setError(`Cannot connect via ${walletType}: Integration not configured locally.`);
     }
     
-    setLoading(false);
+    setIsLoading(false);
   };
 
   const disconnectWallet = () => {
-    setWalletAddress(null);
+    disconnect();
     if (onConnect) onConnect(null);
   };
 
@@ -93,7 +45,7 @@ const WalletConnect = ({ onConnect }) => {
     <div className="wallet-card">
       <div className="wallet-header">
         <h2>Live Poll Wallet</h2>
-        {loading && <div className="loader"></div>}
+        {isLoading && <LoadingSpinner size="small" />}
       </div>
 
       {error && <div className="wallet-error">{error}</div>}
@@ -107,7 +59,7 @@ const WalletConnect = ({ onConnect }) => {
             </div>
             
             {showModal ? (
-              <div className="multi-wallet-modal">
+               <div className="multi-wallet-modal">
                  <h4>Select Wallet Provider</h4>
                  <div className="wallet-list">
                     <button className="wallet-option" onClick={() => handleWalletSelect('freighter')}>
@@ -126,7 +78,7 @@ const WalletConnect = ({ onConnect }) => {
                 <button 
                   className="btn btn-connect" 
                   onClick={() => setShowModal(true)} 
-                  disabled={loading}
+                  disabled={isLoading}
                 >
                   Connect Wallet
                 </button>

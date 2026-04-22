@@ -5,6 +5,46 @@
   box-shadow: var(--shadow-md);
   padding: 2.5rem;
   transition: box-shadow 0.3s ease;
+  position: relative; /* for absolute toasts if needed */
+}
+
+/* Toast System */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1000;
+}
+.toast {
+  padding: 12px 20px;
+  border-radius: 8px;
+  background: #333;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  animation: slideIn 0.3s ease;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.toast-success { background: #2e7d32; }
+.toast-error { background: #d32f2f; }
+.toast-info { background: #0277bd; }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Header Area */
+.poll-header-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
 }
 
 .poll-question {
@@ -12,9 +52,87 @@
   font-size: 1.6rem;
   font-weight: 700;
   color: var(--text-main);
-  margin-bottom: 2rem;
+  margin-bottom: 0.5rem;
   line-height: 1.4;
   letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.poll-badge {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+.poll-badge.closed {
+  background: #d32f2f;
+  color: white;
+}
+
+.poll-meta {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.btn-refresh {
+  background: none;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary);
+  font-weight: 500;
+}
+.btn-refresh:hover {
+  background: #f0f7ff;
+}
+.btn-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Skeleton Loaders */
+.skeleton {
+  background: linear-gradient(90deg, #e0e0e0 25%, #f5f5f5 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 8px;
+}
+.title-skeleton {
+  height: 32px;
+  width: 70%;
+  margin: 0 auto 10px auto;
+}
+.option-skeleton {
+  height: 60px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.winner-banner {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border: 1px solid #ffb74d;
+  color: #e65100;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
 }
 
 .poll-options {
@@ -35,7 +153,7 @@
   flex-direction: column;
 }
 
-.poll-option:hover {
+.poll-option:hover:not(.disabled-option) {
   border-color: #99c2ff;
   background: #f0f7ff;
 }
@@ -44,6 +162,10 @@
   border-color: var(--primary);
   background: #e6f0fa;
   box-shadow: 0 0 0 1px var(--primary);
+}
+.poll-option.disabled-option {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .option-header {
@@ -141,6 +263,24 @@
   transform: none;
 }
 
+.admin-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+}
+.btn-danger {
+  background-color: #d32f2f;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+}
+.btn-danger:hover:not(:disabled) {
+  background-color: #b71c1c;
+}
+
 .tx-status-container {
   margin-top: 1.5rem;
   padding: 1rem;
@@ -168,13 +308,13 @@
 
 .status-msg.success {
   color: #2e7d32;
-  background: var(--success-bg);
+  background: var(--success-bg, #e8f5e9);
   border: 1px solid rgba(76, 175, 80, 0.3);
 }
 
 .status-msg.error {
   color: #c62828;
-  background: var(--error-bg);
+  background: var(--error-bg, #ffebee);
   border: 1px solid rgba(244, 67, 54, 0.3);
 }
 
@@ -186,6 +326,12 @@
   border-radius: 50%;
   animation: spin 1s linear infinite;
   display: inline-block;
+}
+
+.small-spinner {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
 }
 
 .tx-link {
@@ -204,8 +350,8 @@
 .btn-retry {
   padding: 0.5rem 1.25rem;
   background: transparent;
-  color: var(--error);
-  border: 1px solid var(--error);
+  color: var(--error, #d32f2f);
+  border: 1px solid var(--error, #d32f2f);
   border-radius: 6px;
   font-weight: 600;
   font-size: 0.95rem;
@@ -215,7 +361,7 @@
 }
 
 .btn-retry:hover {
-  background: var(--error-bg);
+  background: var(--error-bg, #ffebee);
 }
 
 @keyframes fadeIn {

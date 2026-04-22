@@ -1,0 +1,36 @@
+.skeleton {
+  background: linear-gradient(90deg, #2c2f36 25%, #3a3d45 50%, #2c2f36 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeleton-poll {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton-line {
+  height: 20px;
+  width: 100%;
+  border-radius: 4px;
+}
+
+.skeleton-line.title {
+  height: 30px;
+  margin-bottom: 16px;
+}
+
+.skeleton-line.option {
+  height: 40px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

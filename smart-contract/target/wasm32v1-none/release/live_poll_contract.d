@@ -1,0 +1,1 @@
+C:\Users\hp\Desktop\stellar-connect-wallet\stellar-connect-wallet\smart-contract\target\wasm32v1-none\release\live_poll_contract.wasm: C:\Users\hp\Desktop\stellar-connect-wallet\stellar-connect-wallet\smart-contract\src\lib.rs
