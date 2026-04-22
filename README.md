@@ -2,7 +2,7 @@
 
 ## 📍 Quick Navigation
 * [🟡 Level 2: Yellow Belt Submission](#-yellow-belt-submission-links)
-* [🟢 Level 3: Green Belt Submission](#-green-belt-level-3-submission-details-official)
+* [🟠 Level 3: Orange Belt Submission](#-orange-belt-level-3-submission-details-official)
 * [🛠️ Installation & Setup](#-prerequisites--installation)
 
 ---
@@ -105,7 +105,7 @@ npm install
 
 ---
 
-## 🟢 GREEN BELT (LEVEL 3) SUBMISSION DETAILS (OFFICIAL) 🏆
+## 🟠 ORANGE BELT (LEVEL 3) SUBMISSION DETAILS (OFFICIAL) 🏆
 
 ✅ **Naya Contract ID (Restricted Voting):** `CCPC6IAMNB3M5ULNYKIUYQAY7LD55J27MAK4F3D66WNHE7V5UA7DJMP3`  
 ✅ **Transaction Hash (First Voter):** `1ca6e1a86718253769ea82b58d7a8277a2b6cdcca185618424b3150811242c9c`  
