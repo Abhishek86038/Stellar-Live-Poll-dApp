@@ -1,21 +1,17 @@
 import * as StellarSdk from "@stellar/stellar-sdk";
 import { signTransaction } from "@stellar/freighter-api";
 
-// ABSOLUTE FORCE - TESTNET ONLY
+// 100% HARDCODED FOR STABILITY
 const TESTNET_PASSPHRASE = "Test SDF Network ; September 2015";
 const CONTRACT_ID = "CCPC6IAMNB3M5ULNYKIUYQAY7LD55J27MAK4F3D66WNHE7V5UA7DJMP3";
 const RPC_URL = "https://soroban-testnet.stellar.org";
-
-console.log("PROD BUILD: FORCING TESTNET NETWORK");
 
 let server;
 try {
   if (StellarSdk.rpc) {
     server = new StellarSdk.rpc.Server(RPC_URL);
-  } else if (StellarSdk.SorobanRpc) {
-    server = new StellarSdk.SorobanRpc.Server(RPC_URL);
   } else {
-    server = new StellarSdk.rpc.Server(RPC_URL);
+    server = new StellarSdk.SorobanRpc.Server(RPC_URL);
   }
 } catch (e) {
   server = new StellarSdk.rpc.Server(RPC_URL);
@@ -27,13 +23,11 @@ export const buildTransaction = async (walletAddress, contractAddress, method, a
   const sourceAccount = await server.getAccount(walletAddress);
   const contract = new StellarSdk.Contract(contractAddress || CONTRACT_ID);
   
-  // V14 & V15 Double Compatibility for Network Passphrase
-  const txOptions = {
+  // Create transaction with explicit network string
+  const tx = new StellarSdk.TransactionBuilder(sourceAccount, {
     fee: "3000",
     networkPassphrase: TESTNET_PASSPHRASE,
-  };
-
-  const tx = new StellarSdk.TransactionBuilder(sourceAccount, txOptions)
+  })
     .addOperation(contract.call(method, ...args))
     .setTimeout(60)
     .build();
@@ -41,27 +35,30 @@ export const buildTransaction = async (walletAddress, contractAddress, method, a
   const simResult = await server.simulateTransaction(tx);
   
   const assemble = StellarSdk.rpc ? StellarSdk.rpc.assembleTransaction : StellarSdk.SorobanRpc.assembleTransaction;
-  const finalized = assemble(tx, simResult).build();
-  
-  return finalized;
+  return assemble(tx, simResult).build();
 };
 
 export const submitToTestnet = async (signedXdr) => {
-  let xdrStr = typeof signedXdr === 'string' ? signedXdr : (signedXdr.signedTransaction || signedXdr.xdr || "");
-  
-  // RE-PARSE WITH FORCED NETWORK
-  const tx = StellarSdk.TransactionBuilder.fromXDR(xdrStr, TESTNET_PASSPHRASE);
-  const response = await server.sendTransaction(tx);
+  try {
+    let xdrStr = typeof signedXdr === 'string' ? signedXdr : (signedXdr.signedTransaction || signedXdr.xdr || "");
+    if (!xdrStr) throw new Error("No XDR");
 
-  if (response.status === "ERROR") throw new Error("TX Failed");
+    // USE DIRECT TRANSACTION CONSTRUCTOR (Most Stable)
+    const tx = new StellarSdk.Transaction(xdrStr, TESTNET_PASSPHRASE);
+    const response = await server.sendTransaction(tx);
 
-  for (let i = 0; i < 20; i++) {
-    const status = await server.getTransaction(response.hash);
-    if (status.status === "SUCCESS") return response.hash;
-    if (status.status === "FAILED") throw new Error("Execution failed");
-    await new Promise(r => setTimeout(r, 2000));
+    if (response.status === "ERROR") throw new Error("Rejected");
+
+    for (let i = 0; i < 20; i++) {
+      const status = await server.getTransaction(response.hash);
+      if (status.status === "SUCCESS") return response.hash;
+      if (status.status === "FAILED") throw new Error("Execution failed");
+      await new Promise(r => setTimeout(r, 2000));
+    }
+    throw new Error("Timeout");
+  } catch (e) {
+    throw e;
   }
-  throw new Error("Timeout");
 };
 
 export const castVote = async (walletAddress, contractAddress, optionIndex) => {
@@ -70,8 +67,6 @@ export const castVote = async (walletAddress, contractAddress, optionIndex) => {
   const optionScVal = StellarSdk.nativeToScVal(Number(optionIndex), { type: "u32" });
 
   const transaction = await buildTransaction(addrStr, contractAddress, "vote", [voterScVal, optionScVal]);
-  
-  // Force sign with Testnet
   const signed = await signTransaction(transaction.toXDR(), { network: "TESTNET" });
   return await submitToTestnet(signed);
 };
