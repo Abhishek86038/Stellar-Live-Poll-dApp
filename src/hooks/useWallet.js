@@ -6,13 +6,22 @@ export const useWallet = () => {
   
   const connect = useCallback(async () => {
     try {
-      const isOk = await isConnected();
-      if (!isOk) return null;
+      console.log("Attempting Freighter connection...");
+      // Forcing requestAccess as first step is often more reliable
       const pubKey = await requestAccess();
-      setWalletAddress(pubKey);
-      return pubKey;
+      console.log("Freighter account retrieved:", pubKey);
+      
+      if (pubKey) {
+        setWalletAddress(pubKey);
+        return pubKey;
+      }
+      return null;
     } catch (e) {
-      console.error(e);
+      console.error("Connection error:", e);
+      // Fallback: check if even installed
+      if (!await isConnected()) {
+        alert("Please install Freighter extension first!");
+      }
       return null;
     }
   }, []);
