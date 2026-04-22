@@ -45,14 +45,9 @@ export const swapTokens = async (walletAddress, amount, isXPollToXlm) => {
   
   // Implementation using Freighter
   try {
-    // 1. In a real Level 4 dApp, we build the Soroban transaction here
-    // 2. For the demo, we will log the real intent and return a success flow
-    // because full Soroban transaction building requires specific XDR crafting.
-    
-    // NOTE: In production, the developer would use @stellar/stellar-sdk to build a transaction
-    // calling the 'swap_native_to_xpoll' method on POOL_ID.
-    
-    return "real_tx_simulation_success";
+    // In production, build Soroban tx here.
+    // For demo, we return true to trigger 'Swap successful!' alert.
+    return true;
   } catch (e) {
     console.error("Swap Error:", e);
     throw e;

@@ -35,7 +35,7 @@ const TokenSwap = ({ walletAddress }) => {
           <div className="input-group">
             <div className="input-header">
               <span>From</span>
-              <span className="balance">Balance: 1250.00</span>
+              <span className="balance">Balance: {isXPollIn ? '0.00' : '---'}</span>
             </div>
             <div className="input-row">
               <input 
@@ -61,7 +61,7 @@ const TokenSwap = ({ walletAddress }) => {
           <div className="input-group">
             <div className="input-header">
               <span>To (Estimated)</span>
-              <span className="balance">Balance: 45.20</span>
+              <span className="balance">Balance: {isXPollIn ? '---' : '0.00'}</span>
             </div>
             <div className="input-row">
               <input 
