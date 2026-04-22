@@ -1,11 +1,21 @@
 import * as StellarSdk from "@stellar/stellar-sdk";
 import { signTransaction } from "@stellar/freighter-api";
 
+// FORCED CONSTANTS
 const TESTNET_PASSPHRASE = "Test SDF Network ; September 2015";
 const CONTRACT_ID = "CCPC6IAMNB3M5ULNYKIUYQAY7LD55J27MAK4F3D66WNHE7V5UA7DJMP3";
 const RPC_URL = "https://soroban-testnet.stellar.org";
 
-console.log("Stellar Service Loaded - Build Hash: ForceFinal_01");
+console.log("!!! BOOTING STELLAR SERVICE - V_ULTIMATE_CHECK !!!");
+
+// Force Global Network (Old SDK Style)
+try {
+  if (StellarSdk.Network) {
+    StellarSdk.Network.useTestNetwork();
+  } else if (StellarSdk.Networks) {
+    // Some SDK versions use this
+  }
+} catch(e) {}
 
 let server;
 try {
@@ -19,13 +29,17 @@ try {
 export { server };
 
 export const buildTransaction = async (walletAddress, contractAddress, method, args) => {
+  console.log("Building for Address:", walletAddress);
   const sourceAccount = await server.getAccount(walletAddress);
   const contract = new StellarSdk.Contract(contractAddress || CONTRACT_ID);
 
-  const tx = new StellarSdk.TransactionBuilder(sourceAccount, {
-    fee: "3500",
+  // New SDK Style
+  const builder = new StellarSdk.TransactionBuilder(sourceAccount, {
+    fee: "4000",
     networkPassphrase: TESTNET_PASSPHRASE,
-  })
+  });
+
+  const tx = builder
     .addOperation(contract.call(method, ...args))
     .setTimeout(60)
     .build();
@@ -35,37 +49,46 @@ export const buildTransaction = async (walletAddress, contractAddress, method, a
     ? StellarSdk.rpc.assembleTransaction
     : StellarSdk.SorobanRpc.assembleTransaction;
     
-  return assemble(tx, simResult).build();
+  const finalized = assemble(tx, simResult).build();
+  
+  // Double Check Passphrase before shipping to wallet
+  console.log("XDR built. Network:", finalized.networkPassphrase || "Implicit");
+  return finalized;
 };
 
 export const submitToTestnet = async (signedData) => {
+  console.log("Raw Result from Freighter:", signedData);
+  
   try {
     let xdr = "";
-    // EXHAUSTIVE EXTRACTION
     if (typeof signedData === "string") {
       xdr = signedData;
     } else if (signedData && typeof signedData === "object") {
-      xdr = signedData.signedTransaction || signedData.signedXdr || signedData.xdr || "";
+      // Catch every possible key Freighter might use
+      xdr = signedData.signedTransaction || 
+            signedData.signedXdr || 
+            signedData.xdr || 
+            signedData.result || 
+            "";
     }
 
     if (!xdr) {
-      throw new Error("Empty signature received from wallet.");
+      console.error("DEBUG: signTransaction returned nothing usable:", signedData);
+      throw new Error("Empty signature received from wallet. Did the popup show Mainnet?");
     }
 
     const tx = new StellarSdk.Transaction(xdr, TESTNET_PASSPHRASE);
     const response = await server.sendTransaction(tx);
 
-    if (response.status === "ERROR") throw new Error("Transaction rejected by Soroban RPC");
+    if (response.status === "ERROR") throw new Error("Rejected by Network RPC");
 
-    console.log("Transaction sent! Hash:", response.hash);
-
-    for (let i = 0; i < 25; i++) {
+    for (let i = 0; i < 30; i++) {
         const txData = await server.getTransaction(response.hash);
         if (txData.status === "SUCCESS") return response.hash;
-        if (txData.status === "FAILED") throw new Error("Contract execution failed on-chain");
+        if (txData.status === "FAILED") throw new Error("Transaction execution failed on ledger");
         await new Promise(r => setTimeout(r, 2000));
     }
-    throw new Error("Status polling timed out (check history in wallet)");
+    throw new Error("Verification timeout - Transaction may still succeed later");
   } catch (err) {
     throw err;
   }
@@ -78,8 +101,8 @@ export const castVote = async (walletAddress, contractAddress, optionIndex) => {
 
   const transaction = await buildTransaction(addr, contractAddress, "vote", [voterScVal, optionScVal]);
   
-  // LOG for debugging in production console
-  console.log("Signing transaction for network:", TESTNET_PASSPHRASE);
+  // LOG for console debugging
+  console.log("Prompting signTransaction for Testnet...");
   
   const result = await signTransaction(transaction.toXDR(), {
     network: "TESTNET",
