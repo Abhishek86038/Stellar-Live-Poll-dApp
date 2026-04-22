@@ -42,7 +42,7 @@ const WalletConnect = ({ onConnect }) => {
   };
 
   return (
-    <div className="wallet-card">
+    <div className="wallet-card glass-panel">
       <div className="wallet-header">
         <h2>Live Poll Wallet</h2>
         {isLoading && <LoadingSpinner size="small" />}

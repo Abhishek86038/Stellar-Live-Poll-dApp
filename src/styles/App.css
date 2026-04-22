@@ -1,100 +1,265 @@
 .app-container {
   min-height: 100vh;
-  padding: 2.5rem;
-  max-width: 1200px;
+  padding: 3rem 2rem;
+  max-width: 1300px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
 }
 
 .app-header {
-  text-align: center;
-  margin-bottom: 3rem;
+  padding: 1.25rem 3rem;
+  border-radius: 99px;
+  background: rgba(15, 23, 42, 0.6); /* Darker background for header */
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 auto 3.5rem;
+  width: fit-content;
+  max-width: 95%;
+  position: sticky;
+  top: 1.5rem;
+  z-index: 1000;
 }
 
 .app-header h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--text-main);
-  margin-bottom: 0.5rem;
-  letter-spacing: -0.5px;
+  font-size: 1.85rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(125, 211, 252, 0.4);
+  margin-bottom: 0;
+  letter-spacing: -0.01em;
 }
 
 .subtitle {
-  color: var(--primary);
-  font-size: 1.1rem;
-  font-weight: 600;
+  color: var(--liquid-aqua);
+  font-size: 0.9rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.15em;
+  opacity: 1;
+  border-left: 2px solid var(--liquid-cyan);
+  padding-left: 2rem;
+  margin-left: 2rem;
 }
+
+
 
 .app-main-grid {
   display: grid;
-  grid-template-columns: 350px 1fr;
-  gap: 2rem;
+  grid-template-columns: 380px 1fr;
+  gap: 3rem;
   align-items: start;
 }
 
 .sidebar-section {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
+  position: sticky;
+  top: 2rem;
 }
 
 .info-card {
-  background: var(--bg-card);
-  border-radius: 12px;
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-md);
-  padding: 1.75rem;
+  padding: 2rem;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.info-card:hover {
+  transform: translateY(-5px);
 }
 
 .info-card h3 {
-  color: var(--text-main);
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border-light);
-  font-size: 1.15rem;
+  color: var(--liquid-aqua);
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.info-card h3::before {
+  content: '🌊';
+  font-size: 1.1rem;
 }
 
 .instructions-list {
-  padding-left: 1.25rem;
+  list-style: none;
   color: var(--text-muted);
-  font-size: 0.95rem;
-  line-height: 1.7;
+  font-size: 1rem;
+  line-height: 1.8;
 }
 
 .instructions-list li {
-  margin-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.instructions-list li::before {
+  content: '✦';
+  color: var(--liquid-cyan);
+  font-weight: bold;
 }
 
 .instructions-list strong {
   color: var(--text-main);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* Mobile Responsive Adjustments */
-@media screen and (max-width: 900px) {
-  .app-container {
-    padding: 1.5rem;
+@media screen and (max-width: 1024px) {
+  .app-main-grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
   }
   
+  .sidebar-section {
+    position: static;
+    order: 1;
+  }
+  
+  .main-content-section {
+    order: 2;
+  }
+}
+
+/* Level 4 Components Styling */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.stat-card {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.main-stat {
+  grid-column: span 2;
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(15, 23, 42, 0.4));
+}
+
+.stat-value {
+  font-size: 3rem;
+  font-weight: 900;
+  margin: 1rem 0;
+  color: #fff;
+}
+
+.denom {
+  font-size: 1rem;
+  opacity: 0.7;
+}
+
+/* Swap Card */
+.swap-card {
+  max-width: 480px;
+  width: 100%;
+  padding: 2.5rem;
+}
+
+.input-group {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1.25rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.input-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.input-row input {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: #fff;
+  width: 70%;
+  outline: none;
+}
+
+/* Event Stream */
+.event-stream-container {
+  padding: 1.5rem;
+}
+
+.stream-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.event-item {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Mobile Responsiveness Improvements */
+@media screen and (max-width: 640px) {
   .app-header {
-    margin-bottom: 2rem;
-  }
-  
-  .app-header h1 {
-    font-size: 2rem;
+    padding: 1rem;
+    width: 95%;
+    border-radius: 20px;
   }
   
   .app-main-grid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    padding-bottom: 100px; /* Space for mobile nav */
   }
-  
-  .sidebar-section {
-    order: 1; /* Puts wallet securely at the top on mobile layouts */
+
+  .main-stat {
+    grid-column: span 1;
   }
-  
-  .main-content-section {
-    order: 2; /* Content strictly falls underneath */
+
+  .nav-links {
+    display: none; /* Hide desktop nav */
   }
 }
+
+.mobile-nav {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(20px);
+  padding: 0.75rem 1.5rem;
+  border-radius: 99px;
+  display: flex;
+  gap: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 2000;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.mobile-nav a {
+  color: #fff;
+  opacity: 0.6;
+}
+
+.mobile-nav a.active {
+  color: var(--liquid-cyan);
+  opacity: 1;
+}
+
+
+

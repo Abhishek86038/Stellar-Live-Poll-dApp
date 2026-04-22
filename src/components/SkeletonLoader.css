@@ -1,29 +1,32 @@
 .skeleton {
-  background: linear-gradient(90deg, #2c2f36 25%, #3a3d45 50%, #2c2f36 75%);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 75%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 4px;
+  animation: shimmer 2s infinite;
+  border-radius: 12px;
 }
 
 .skeleton-poll {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 1.5rem;
 }
 
 .skeleton-line {
-  height: 20px;
+  height: 24px;
   width: 100%;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .skeleton-line.title {
-  height: 30px;
-  margin-bottom: 16px;
+  height: 48px;
+  width: 80%;
+  margin: 0 auto 2rem;
+  border-radius: 20px;
 }
 
 .skeleton-line.option {
-  height: 40px;
+  height: 80px;
+  border-radius: 24px;
 }
 
 @keyframes shimmer {
@@ -34,3 +37,4 @@
     background-position: -200% 0;
   }
 }
+

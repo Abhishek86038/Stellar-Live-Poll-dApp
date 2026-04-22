@@ -1,44 +1,75 @@
-import React, { useState } from 'react';
-import './styles/App.css';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
+import { LayoutDashboard, Vote, Repeat, Droplets, Activity } from 'lucide-react';
 import WalletConnect from './components/WalletConnect';
+import Dashboard from './pages/Dashboard';
+import TokenSwap from './pages/TokenSwap';
 import LivePoll from './components/LivePoll';
+import EventStream from './components/EventStream';
+import ToastNotification from './components/ToastNotification';
+import './styles/App.css';
 
-function App() {
-  // Top-level state management for Wallet Connection
-  // It trickles down as props to the LivePoll component so it can perform transactions
+const App = () => {
   const [walletAddress, setWalletAddress] = useState(null);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+
+  const showToast = (message, type = 'info') => {
+    setToast({ show: true, message, type });
+  };
 
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <h1>Stellar Live Poll</h1>
-        <p className="subtitle">Journey to Mastery ‒ Green Belt</p>
-      </header>
-
-      <main className="app-main-grid">
-        {/* Left column / Top on mobile: Wallet Integration */}
-        <section className="sidebar-section">
-          <WalletConnect onConnect={setWalletAddress} />
-          
-          <div className="info-card glass-panel">
-            <h3>How to use</h3>
-            <ol className="instructions-list">
-              <li>Connect your <strong>Stellar Freighter</strong> wallet on the Testnet.</li>
-              <li>Select your response from the options provided.</li>
-              <li>Click <strong>Cast Vote</strong> and sign the Soroban transaction inside Freighter.</li>
-              <li>Wait for the network to validate your vote onto the ledger.</li>
-            </ol>
+    <Router>
+      <div className="app-container">
+        <header className="app-header">
+          <div className="header-brand">
+            <h1>Stellar Live Poll</h1>
+            <span className="subtitle">Level 4 🌊 Green Belt Edition</span>
           </div>
-        </section>
 
-        {/* Right column / Bottom on mobile: The core Poll DApp */}
-        <section className="main-content-section">
-          {/* Passes wallet context down allowing the poll to initiate signed blockchain executions */}
-          <LivePoll walletAddress={walletAddress} />
-        </section>
-      </main>
-    </div>
+          <nav className="nav-links">
+            <NavLink to="/" className={({ isActive }) => isActive ? 'active' : ''}>Dashboard</NavLink>
+            <NavLink to="/polls" className={({ isActive }) => isActive ? 'active' : ''}>Polls</NavLink>
+            <NavLink to="/swap" className={({ isActive }) => isActive ? 'active' : ''}>Swap</NavLink>
+          </nav>
+        </header>
+
+        <main className="app-main-grid">
+          <aside className="app-sidebar">
+            <WalletConnect 
+              onConnect={setWalletAddress} 
+              onDisconnect={() => setWalletAddress(null)} 
+            />
+            <EventStream />
+          </aside>
+
+          <section className="app-content">
+            <Routes>
+              <Route path="/" element={<Dashboard walletAddress={walletAddress} />} />
+              <Route path="/polls" element={<LivePoll walletAddress={walletAddress} />} />
+              <Route path="/swap" element={<TokenSwap walletAddress={walletAddress} />} />
+              <Route path="/pool" element={<div>Liquidity Pool Feature Coming Soon</div>} />
+            </Routes>
+          </section>
+        </main>
+
+        {/* Mobile Navbar */}
+        <nav className="mobile-nav">
+          <NavLink to="/"><LayoutDashboard size={24} /></NavLink>
+          <NavLink to="/polls"><Vote size={24} /></NavLink>
+          <NavLink to="/swap"><Repeat size={24} /></NavLink>
+          <NavLink to="/pool"><Droplets size={24} /></NavLink>
+        </nav>
+
+        {toast.show && (
+          <ToastNotification 
+            message={toast.message} 
+            type={toast.type} 
+            onClose={() => setToast({ ...toast, show: false })} 
+          />
+        )}
+      </div>
+    </Router>
   );
-}
+};
 
 export default App;

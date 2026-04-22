@@ -1,0 +1,44 @@
+name: Stellar dApp Level 4 CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install Frontend Dependencies
+        run: npm install
+        
+      - name: Run Frontend Tests
+        run: npm test -- --watchAll=false
+        
+      - name: Build Frontend
+        run: npm run build
+
+  contract-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          
+      - name: Build Smart Contracts
+        run: |
+          cd smart-contract
+          cargo build --target wasm32-unknown-unknown --release

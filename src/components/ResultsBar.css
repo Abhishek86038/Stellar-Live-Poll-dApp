@@ -1,7 +1,7 @@
 .results-bar-container {
   display: flex;
   flex-direction: column;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
   width: 100%;
 }
 
@@ -9,58 +9,63 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .results-bar-title {
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 1.1rem;
+  font-weight: 700;
   color: var(--text-main);
-  letter-spacing: 0.25px;
+  letter-spacing: -0.01em;
 }
 
 .results-bar-numbers {
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--text-muted);
-  font-weight: 500;
-  font-variant-numeric: tabular-nums; 
+  font-weight: 600;
 }
 
 .results-bar-percentage {
-  color: var(--primary);
-  font-weight: 600;
-  margin-left: 4px;
+  color: var(--liquid-aqua);
+  font-weight: 800;
+  margin-left: 8px;
+  background: rgba(14, 165, 233, 0.1);
+  padding: 2px 8px;
+  border-radius: 99px;
 }
 
 .results-bar-bg {
   width: 100%;
-  height: 8px;
-  background: var(--border-light);
-  border-radius: 4px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 99px;
   overflow: hidden;
   position: relative;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .results-bar-fill {
   height: 100%;
-  border-radius: 4px;
-  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 99px;
+  transition: width 1.2s cubic-bezier(0.19, 1, 0.22, 1);
   position: relative;
+  background: linear-gradient(90deg, var(--liquid-blue), var(--liquid-cyan));
+  box-shadow: 0 0 15px var(--primary-glow);
 }
 
-/* Subtle gloss effect across the top edge */
-.results-bar-fill::after {
+.results-bar-fill::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  height: 30%;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.3) 0%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  border-radius: 4px 4px 0 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: shine 2s infinite linear;
 }
+
+@keyframes shine {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+

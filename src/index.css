@@ -1,24 +1,30 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  /* Exact Stellar Brand Colors required */
-  --primary: #0066CC;
-  --primary-hover: #004d99;
-  --success: #4CAF50;
-  --success-bg: #e8f5e9;
-  --error: #F44336;
-  --error-bg: #ffebee;
-  --warning: #ff9800;
+  /* Water-Inspired Gradient Palette */
+  --liquid-sky: #e0f2fe;
+  --liquid-aqua: #7dd3fc;
+  --liquid-cyan: #22d3ee;
+  --liquid-blue: #0ea5e9;
+  --deep-ocean: #075985;
   
-  /* Modern clean layout variables */
-  --bg-main: #f8fafc;
-  --bg-card: #ffffff;
-  --text-main: #1e293b;
-  --text-muted: #64748b;
-  --border-light: #e2e8f0;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  /* Brand Colors Refinement */
+  --primary: #0088ff;
+  --primary-glow: rgba(0, 136, 255, 0.6);
+  --success: #10b981;
+  --error: #ef4444;
+  --warning: #f59e0b;
+  
+  /* Glassmorphism Tokens - Increased opacity and blur for visibility */
+  --glass-bg: rgba(15, 23, 42, 0.3); /* Darker translucent for better text contrast */
+  --glass-border: rgba(255, 255, 255, 0.25);
+  --glass-shadow: 0 15px 45px rgba(0, 0, 0, 0.45);
+  --glass-blur: blur(20px);
+  
+  /* Typography - Maximum brightness */
+  --text-main: #ffffff;
+  --text-muted: #e2f5ff;
+  --text-dark: #001e30;
 }
 
 * {
@@ -28,31 +34,99 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: var(--bg-main);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: var(--text-main);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  background: var(--deep-ocean);
+}
+
+/* Fluid Animated Background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  background: url('./assets/water-bg.png') center/cover no-repeat;
+  filter: brightness(0.75) contrast(1.1);
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  z-index: -1;
+  background: radial-gradient(circle at 30% 30%, rgba(34, 211, 238, 0.15) 0%, transparent 40%),
+              radial-gradient(circle at 70% 70%, rgba(14, 165, 233, 0.15) 0%, transparent 40%),
+              radial-gradient(circle at 50% 50%, rgba(125, 211, 252, 0.1) 0%, transparent 60%);
+  animation: fluid-motion 25s infinite alternate ease-in-out;
+}
+
+@keyframes fluid-motion {
+  0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  50% { transform: translate(-3%, -2%) scale(1.05) rotate(1deg); }
+  100% { transform: translate(3%, 2%) scale(1) rotate(-1deg); }
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
-  color: var(--text-main);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #ffffff;
 }
 
 button {
   font-family: inherit;
   cursor: pointer;
   border: none;
+  outline: none;
 }
 
 a {
-  color: var(--primary);
+  color: var(--liquid-aqua);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
+  transition: all 0.3s ease;
 }
 
 a:hover {
-  text-decoration: underline;
+  color: #ffffff;
+  text-shadow: 0 0 15px var(--primary-glow);
+}
+
+/* Global Glass Class */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 28px;
+  box-shadow: var(--glass-shadow);
+}
+
+/* Re-fixing Poll Option Styles */
+.poll-option {
+  background: rgba(0, 0, 0, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 24px;
+}
+
+.poll-option:hover:not(.disabled-option) {
+  background: rgba(14, 165, 233, 0.2) !important;
+  border-color: var(--liquid-aqua) !important;
+}
+
+.poll-option.selected {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.35), rgba(7, 89, 133, 0.35)) !important;
+  border-color: var(--liquid-cyan) !important;
+  box-shadow: 0 0 30px rgba(34, 211, 238, 0.4) !important;
 }
