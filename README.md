@@ -1,4 +1,4 @@
-# 🌊 Advanced Token-Gated Poll - Level 4 Green Belt
+# 🌊 Advanced Token-Gated Poll - Level 4 Green Belt 
 
 Advanced Stellar dApp with inter-contract calls, custom token, liquidity pool, and real-time event streaming.
 
