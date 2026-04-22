@@ -43,9 +43,6 @@ export const buildTransaction = async (walletAddress, contractAddress, method, a
   const assemble = StellarSdk.rpc ? StellarSdk.rpc.assembleTransaction : StellarSdk.SorobanRpc.assembleTransaction;
   const finalized = assemble(tx, simResult).build();
   
-  // Set explicit network inner if possible (older SDK fallback)
-  if (finalized.networkPassphrase) finalized.networkPassphrase = TESTNET_PASSPHRASE;
-
   return finalized;
 };
 
