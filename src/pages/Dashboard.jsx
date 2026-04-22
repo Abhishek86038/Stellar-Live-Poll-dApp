@@ -4,7 +4,7 @@ import * as advancedService from '../services/advancedContractService';
 
 const Dashboard = ({ walletAddress }) => {
   const [balance, setBalance] = useState(0);
-  const [stats, setStats] = useState({
+  const [stats] = useState({
     pollsCreated: 3,
     votesCast: 12,
     rewardsEarned: 450

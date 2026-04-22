@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Vote, Repeat, Droplets, Activity } from 'lucide-react';
+import { LayoutDashboard, Vote, Repeat, Droplets } from 'lucide-react';
 import WalletConnect from './components/WalletConnect';
 import Dashboard from './pages/Dashboard';
 import TokenSwap from './pages/TokenSwap';

@@ -1,9 +1,6 @@
 import { 
-  Address, 
   rpc, 
   xdr, 
-  scValToNative, 
-  nativeToScVal, 
   Contract 
 } from '@stellar/stellar-sdk';
 
@@ -15,23 +12,7 @@ export const TOKEN_ID = process.env.REACT_APP_XPOLL_TOKEN_CONTRACT_ID || "";
 export const POOL_ID = process.env.REACT_APP_LIQUIDITY_POOL_CONTRACT_ID || "";
 export const POLL_ID = process.env.REACT_APP_ADVANCED_POLL_CONTRACT_ID || "";
 
-const fetchXDR = async (contractId, method, args = []) => {
-  try {
-    const contract = new Contract(contractId);
-    const tx = await server.simulateTransaction(
-      new xdr.TransactionEnvelope({
-        tx: new xdr.Transaction({
-           // Simplified simulate call
-        })
-      })
-    );
-    // Real implementation would use full Stellar SDK patterns
-    return null;
-  } catch (err) {
-    console.error(`Error in ${method}:`, err);
-    throw err;
-  }
-};
+// Real implementation would use full Stellar SDK patterns
 
 export const getTokenBalance = async (address) => {
   // Simulated balance for UI demo
