@@ -68,11 +68,17 @@ export const submitToTestnet = async (signedXdr) => {
 };
 
 export const castVote = async (walletAddress, contractAddress, optionIndex) => {
-  // Safe Address Conversion
-  const voterScVal = new StellarSdk.Address(walletAddress).toScVal();
+  // Robust Address Extraction (Fixes [object Object] error)
+  const addrStr = typeof walletAddress === 'string' ? walletAddress : (walletAddress?.address || walletAddress?.toString() || "");
+  
+  if (!addrStr || !addrStr.startsWith('G')) {
+    throw new Error("Invalid wallet address string");
+  }
+
+  const voterScVal = new StellarSdk.Address(addrStr).toScVal();
   const optionScVal = StellarSdk.nativeToScVal(Number(optionIndex), { type: "u32" });
 
-  const transaction = await buildTransaction(walletAddress, contractAddress, "vote", [voterScVal, optionScVal]);
+  const transaction = await buildTransaction(addrStr, contractAddress, "vote", [voterScVal, optionScVal]);
   const signed = await signTransaction(transaction.toXDR(), { network: "TESTNET" });
   return await submitToTestnet(signed);
 };
