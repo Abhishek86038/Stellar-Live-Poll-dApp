@@ -6,6 +6,21 @@ const TokenSwap = ({ walletAddress }) => {
   const [fromAmount, setFromAmount] = useState('');
   const [isXPollIn, setIsXPollIn] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [balances, setBalances] = useState({ xlm: '0.00', xpoll: '0.00' });
+
+  React.useEffect(() => {
+    const fetchBalances = async () => {
+      if (!walletAddress) return;
+      try {
+        const xpollBal = await advancedService.getTokenBalance(walletAddress);
+        setBalances(prev => ({ ...prev, xpoll: xpollBal }));
+        // Note: XLM balance would typically come from helper or horizon
+      } catch (err) {
+        console.error("Balance fetch error:", err);
+      }
+    };
+    fetchBalances();
+  }, [walletAddress]);
 
   const exchangeRate = isXPollIn ? 0.25 : 4; // 1 XPOLL = 0.25 XLM
 
@@ -17,7 +32,8 @@ const TokenSwap = ({ walletAddress }) => {
       await advancedService.swapTokens(walletAddress, fromAmount, isXPollIn);
       alert("Swap successful!");
     } catch (err) {
-      alert("Swap failed");
+      console.error("Swap error:", err);
+      alert(`Swap failed: ${err.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -35,7 +51,7 @@ const TokenSwap = ({ walletAddress }) => {
           <div className="input-group">
             <div className="input-header">
               <span>From</span>
-              <span className="balance">Balance: {isXPollIn ? '0.00' : '---'}</span>
+              <span className="balance">Balance: {isXPollIn ? balances.xpoll : balances.xlm}</span>
             </div>
             <div className="input-row">
               <input 
@@ -61,7 +77,7 @@ const TokenSwap = ({ walletAddress }) => {
           <div className="input-group">
             <div className="input-header">
               <span>To (Estimated)</span>
-              <span className="balance">Balance: {isXPollIn ? '---' : '0.00'}</span>
+              <span className="balance">Balance: {isXPollIn ? balances.xlm : balances.xpoll}</span>
             </div>
             <div className="input-row">
               <input 
