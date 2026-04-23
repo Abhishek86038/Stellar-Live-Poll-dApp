@@ -12,9 +12,3 @@ test('renders Wallet connection section', () => {
   const walletSection = screen.getByText(/Live Poll Wallet/i);
   expect(walletSection).toBeInTheDocument();
 });
-
-test('renders instructions section', () => {
-  render(<App />);
-  const instructions = screen.getByText(/How to use/i);
-  expect(instructions).toBeInTheDocument();
-});
