@@ -34,9 +34,14 @@ Advanced Stellar dApp with inter-contract calls, custom token, liquidity pool, a
 
 ### 🔗 Submission Details
 - ✅ **Live Demo Link**: [https://stellar-live-poll.vercel.app](https://stellar-live-poll.vercel.app)
-- ✅ **Token Contract ID**: `CAZ26TYA7YPMB3RKNURYG633DYV5JUSG7JUKWL3YN5HEHTUGTUIOXXSN`
-- ✅ **Pool Contract ID**: `CAF5ZFZNA7M5OOBVOHO3KIJZDZXKSRLGYAM56Z5XRJXUX76YTRUMZLUB`
-- ✅ **Poll Contract ID**: `CAXQQTESVS5WJMR6YCZXLGLWR2XOP5WTZBNDH7VRYXSB54GDICN4VPZ6`
+- ✅ **Token Contract ID**: `CAOAPSP35AQ6KRWVKBDVJLNYO3TOSUF7AI2Q6YIQY2DMI2B7YD4TS4LL`
+- ✅ **Pool Contract ID**: `CCJLAH3Y7ZYJEZH44PENQFV3XZ75452DZG2SPZNTRFAQC3MT5KGGERQV`
+- ✅ **Poll Contract ID**: `CCIKQ7UIWMTBEOLT734B6FMQI5JSXK7HBJPAPSDPLMWP2UHJELV2ZTOX`
+
+#### 🛡️ Verification Hashes (On-Chain Proof)
+- **Token Deployment**: `f514665f3488429c61d9873820608012eb57b0393b530e29253515310f0b3e79`
+- **Pool Deployment**: `3f783a59f86ae240a60e95e77e5fc45fe53855b2b6e81125ad1b56b6601197ec`
+- **Liquidity Seeded**: `850ddd75f89192bf574602eff6c051d5fe9d20c75a893a7b7bc009cef38e263c`
 
 ---
 
