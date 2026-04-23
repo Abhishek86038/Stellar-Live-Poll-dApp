@@ -63,13 +63,34 @@ export const swapTokens = async (walletAddress, amount, isXPollToXlm) => {
     const assembledTx = StellarSdk.rpc.assembleTransaction(tx, simResult).build();
     
     // THIS WILL TRIGGER THE POPUP
-    const signedXdr = await signTransaction(assembledTx.toXDR(), {
+    const signedResponse = await signTransaction(assembledTx.toXDR(), {
       network: "TESTNET",
       networkPassphrase: NETWORK_PASSPHRASE
     });
 
-    // 5. Submit
-    const submission = await server.sendTransaction(StellarSdk.TransactionBuilder.fromXDR(signedXdr, NETWORK_PASSPHRASE));
+    // 5. Extract XDR — Freighter v6 may return an object or a string
+    let xdr = "";
+    if (typeof signedResponse === "string") {
+      xdr = signedResponse;
+    } else if (signedResponse && typeof signedResponse === "object") {
+      xdr = signedResponse.signedTxXdr || signedResponse.signedTransaction || signedResponse.signedXdr || signedResponse.xdr || signedResponse.result || "";
+      if (!xdr) {
+        for (const key in signedResponse) {
+          if (typeof signedResponse[key] === "string" && signedResponse[key].length > 50) {
+            xdr = signedResponse[key];
+            break;
+          }
+        }
+      }
+    }
+
+    if (!xdr) {
+      throw new Error(`Signature missing. Response keys: ${Object.keys(signedResponse || {}).join(", ")}`);
+    }
+
+    // 6. Submit
+    const signedTx = new StellarSdk.Transaction(xdr, NETWORK_PASSPHRASE);
+    const submission = await server.sendTransaction(signedTx);
     
     if (submission.status === "ERROR") {
       throw new Error(`Transaction failed: ${submission.errorResultXdr}`);
