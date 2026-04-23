@@ -15,7 +15,7 @@
     "lucide-react": "^1.8.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "react-router-dom": "^7.14.2",
+    "react-router-dom": "^6.22.3",
     "react-scripts": "5.0.1",
     "soroban-client": "^1.0.0",
     "stellar-base": "^10.0.0",
