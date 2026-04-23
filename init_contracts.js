@@ -4,7 +4,7 @@ require('dotenv').config({ path: '.env.local' });
 const TOKEN_ID = process.env.REACT_APP_XPOLL_TOKEN_CONTRACT_ID;
 const POOL_ID = process.env.REACT_APP_LIQUIDITY_POOL_CONTRACT_ID;
 const POLL_ID = process.env.REACT_APP_ADVANCED_POLL_CONTRACT_ID;
-const NATIVE_XLM_ID = "CDLZFC3SYJYDZT7K67VZ75YJBMKBAV2AYZ677T6XF5SPSQ43THV3QOUI"; // Testnet Native Asset ID
+const NATIVE_XLM_ID = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"; // Testnet Native Asset ID (derived via: stellar contract id asset --asset native --network testnet)
 
 async function init() {
   console.log("🛠️ Initializing contracts on Testnet...");

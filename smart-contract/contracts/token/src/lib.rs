@@ -50,7 +50,7 @@ impl XPollToken {
         );
     }
 
-    pub fn transfer(env: Env, from: Address, to: Address, amount: i128) -> bool {
+    pub fn transfer(env: Env, from: Address, to: Address, amount: i128) {
         from.require_auth();
         let from_key = DataKey::Balance(from.clone());
         let to_key = DataKey::Balance(to.clone());
@@ -68,7 +68,6 @@ impl XPollToken {
             (Symbol::new(&env, "TokenTransferred"), from, to, amount),
             env.ledger().timestamp(),
         );
-        true
     }
 
     pub fn approve(env: Env, owner: Address, spender: Address, amount: i128) {
@@ -82,7 +81,7 @@ impl XPollToken {
         );
     }
 
-    pub fn transfer_from(env: Env, spender: Address, from: Address, to: Address, amount: i128) -> bool {
+    pub fn transfer_from(env: Env, spender: Address, from: Address, to: Address, amount: i128) {
         spender.require_auth();
         let allowance_key = DataKey::Allowance(from.clone(), spender.clone());
         let current_allowance: i128 = env.storage().persistent().get(&allowance_key).unwrap_or(0);
@@ -109,7 +108,6 @@ impl XPollToken {
             (Symbol::new(&env, "TokenTransferred"), from, to, amount),
             env.ledger().timestamp(),
         );
-        true
     }
 
     pub fn balance_of(env: Env, account: Address) -> i128 {

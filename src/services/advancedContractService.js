@@ -37,23 +37,18 @@ export const swapTokens = async (walletAddress, amount, isXPollToXlm) => {
     // 1. Fetch account sequence
     const sourceAccount = await server.getAccount(addr);
     
-    // 2. Build the contract call
+    // 2. Build the contract call — use the correct method per direction
     const contract = new StellarSdk.Contract(POOL_ID);
-    
-    // We'll call 'swap' method. 
-    // Args: [user_address, amount_in, min_amount_out, is_token_in]
-    // This is a generic estimation. Real contract might vary.
+    const methodName = isXPollToXlm ? "swap_xpoll_to_native" : "swap_native_to_xpoll";
     const amountBigInt = BigInt(Math.floor(Number(amount) * 10000000)); // 7 decimals for XLM/Tokens
     
     const tx = new StellarSdk.TransactionBuilder(sourceAccount, {
       fee: "10000",
       networkPassphrase: NETWORK_PASSPHRASE,
     })
-      .addOperation(contract.call("swap", 
+      .addOperation(contract.call(methodName, 
         new StellarSdk.Address(addr).toScVal(),
-        StellarSdk.nativeToScVal(amountBigInt, { type: "i128" }),
-        StellarSdk.nativeToScVal(0n, { type: "i128" }), // 0 slip tolerance for demo
-        StellarSdk.nativeToScVal(!isXPollToXlm, { type: "bool" })
+        StellarSdk.nativeToScVal(amountBigInt, { type: "i128" })
       ))
       .setTimeout(60)
       .build();
@@ -64,8 +59,8 @@ export const swapTokens = async (walletAddress, amount, isXPollToXlm) => {
       throw new Error(`Simulation failed: ${simResult.error}`);
     }
 
-    // 4. Assemble and Sign
-    const assembledTx = StellarSdk.rpc.assembleTransaction(tx, simResult);
+    // 4. Assemble and Sign — assembleTransaction returns a builder, must .build()
+    const assembledTx = StellarSdk.rpc.assembleTransaction(tx, simResult).build();
     
     // THIS WILL TRIGGER THE POPUP
     const signedXdr = await signTransaction(assembledTx.toXDR(), {
@@ -91,11 +86,34 @@ export const swapTokens = async (walletAddress, amount, isXPollToXlm) => {
   }
 };
 
-// Simplified balance fetch for UI feedback
+// Real balance fetch via contract simulation
 export const getTokenBalance = async (walletAddress) => {
   if (!TOKEN_ID || !walletAddress) return "0.00";
-  // Demo mock for balance - in real app, sim 'balance_of'
-  return "100.00"; 
+  
+  try {
+    const addr = typeof walletAddress === 'string' ? walletAddress : (walletAddress.address || walletAddress.toString());
+    const contract = new StellarSdk.Contract(TOKEN_ID);
+    
+    // Use a dummy account for read-only simulation
+    const dummyAccount = new StellarSdk.Account("GCO527YCC6DNDK3K6FN654WXAINDGNB35FUFAN3LURDENIIBD7ZFAJN6", "0");
+    const tx = new StellarSdk.TransactionBuilder(dummyAccount, {
+      fee: "100",
+      networkPassphrase: NETWORK_PASSPHRASE
+    })
+      .addOperation(contract.call("balance_of", new StellarSdk.Address(addr).toScVal()))
+      .setTimeout(30)
+      .build();
+
+    const sim = await server.simulateTransaction(tx);
+    if (!sim.result || !sim.result.retval) return "0.00";
+    
+    const rawBalance = StellarSdk.scValToNative(sim.result.retval);
+    // Convert from 7-decimal stroops to human-readable
+    return (Number(rawBalance) / 10000000).toFixed(2);
+  } catch (err) {
+    console.error("Balance fetch error:", err);
+    return "0.00";
+  }
 };
 
 export const castAdvancedVote = async (walletAddress, pollId, optionIndex, amount) => {
