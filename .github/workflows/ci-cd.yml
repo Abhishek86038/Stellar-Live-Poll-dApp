@@ -19,7 +19,7 @@ jobs:
           cache: 'npm'
           
       - name: Install Frontend Dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
         
       - name: Run Frontend Tests
         run: npm test -- --watchAll=false
@@ -41,4 +41,6 @@ jobs:
       - name: Build Smart Contracts
         run: |
           cd smart-contract
+          # Build token first because poll depends on its WASM
+          cargo build --target wasm32-unknown-unknown --release -p xpoll-token
           cargo build --target wasm32-unknown-unknown --release
