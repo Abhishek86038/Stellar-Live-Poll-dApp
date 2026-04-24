@@ -1,7 +1,7 @@
 const { rpc, Networks, Contract, scValToNative, Account, TransactionBuilder, Address } = require("@stellar/stellar-sdk");
 
 const TOKEN_ID = "CAOAPSP35AQ6KRWVKBDVJLNYO3TOSUF7AI2Q6YIQY2DMI2B7YD4TS4LL";
-const USER_ADDR = "GCO527YCC6DNDK3K6FN654WXAINDGNB35FUFAN3LURDENIIBD7ZFAJN6";
+const USER_ADDR = "GD5WUAXGPDZ7YALI6JZAVJDTSPL4O4OJMYACR7YJSZQYVSDPMY5Z7NQS";
 const RPC_URL = "https://soroban-testnet.stellar.org";
 
 async function verify() {

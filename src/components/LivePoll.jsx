@@ -23,7 +23,7 @@ const LivePoll = ({ walletAddress }) => {
     setLoading(true);
     try {
       const data = await advancedService.getAdvancedPollResults(pollId);
-      if (data) {
+      if (data && data.question) {
         setPollData(data);
       } else {
         setStatus({ type: 'error', msg: 'Poll not found' });

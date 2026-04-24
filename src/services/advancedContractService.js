@@ -311,18 +311,15 @@ export const getAdvancedPollResults = async (pollId) => {
       .build();
 
     const sim = await server.simulateTransaction(tx);
-    if (StellarSdk.rpc.Api.isSimulationError(sim)) {
-      return null;
-    }
-    if (!sim.result || !sim.result.retval) return null;
     
-    try {
-      return StellarSdk.scValToNative(sim.result.retval);
-    } catch (e) {
+    // Safety check for ANY simulation error structure
+    if (!sim || sim.error || (sim.result && sim.result.error) || !sim.result || !sim.result.retval) {
       return null;
     }
+    
+    return StellarSdk.scValToNative(sim.result.retval);
   } catch (err) {
-    console.error("Poll fetch error:", err);
+    // Silently return null for any error to prevent UI crash
     return null;
   }
 };
