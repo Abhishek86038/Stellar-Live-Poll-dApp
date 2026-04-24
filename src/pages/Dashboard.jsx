@@ -53,7 +53,9 @@ const Dashboard = ({ walletAddress }) => {
         <h3>Recent Activity</h3>
         <div className="activity-list">
           {walletAddress ? (
-            <p className="empty-msg">Waiting for ledger events for {walletAddress.substring(0, 8)}...</p>
+            <p className="empty-msg">
+              Waiting for ledger events for {(typeof walletAddress === 'string' ? walletAddress : walletAddress.address || '').substring(0, 8)}...
+            </p>
           ) : (
             <p className="empty-msg">Connect your wallet to see recent activity.</p>
           )}
