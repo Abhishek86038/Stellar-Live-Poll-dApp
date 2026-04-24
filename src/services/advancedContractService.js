@@ -220,3 +220,23 @@ export const castAdvancedVote = async (walletAddress, pollId, optionIndex, amoun
       .setTimeout(60).build()
   );
 };
+
+ e x p o r t   c o n s t   c l o s e P o l l   =   a s y n c   ( w a l l e t A d d r e s s ,   p o l l I d )   = >   { 
+     i f   ( ! P O L L _ I D )   t h r o w   n e w   E r r o r ( \  
+ P o l l  
+ c o n t r a c t  
+ n o t  
+ c o n f i g u r e d . \ ) ; 
+     c o n s t   a d d r   =   g e t A d d r ( w a l l e t A d d r e s s ) ; 
+     c o n s t   c o n t r a c t   =   n e w   S t e l l a r S d k . C o n t r a c t ( P O L L _ I D ) ; 
+ 
+     r e t u r n   a w a i t   s u b m i t T x ( w a l l e t A d d r e s s ,   ( s r c )   = > 
+         n e w   S t e l l a r S d k . T r a n s a c t i o n B u i l d e r ( s r c ,   {   f e e :   \ 1 0 0 0 0 \ ,   n e t w o r k P a s s p h r a s e :   N E T W O R K _ P A S S P H R A S E   } ) 
+             . a d d O p e r a t i o n ( c o n t r a c t . c a l l ( \ c l o s e _ p o l l \ , 
+                 n e w   S t e l l a r S d k . A d d r e s s ( a d d r ) . t o S c V a l ( ) , 
+                 S t e l l a r S d k . n a t i v e T o S c V a l ( N u m b e r ( p o l l I d ) ,   {   t y p e :   \ u 3 2 \   } ) 
+             ) ) 
+             . s e t T i m e o u t ( 6 0 ) . b u i l d ( ) 
+     ) ; 
+ } ;  
+ 

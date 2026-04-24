@@ -95,6 +95,7 @@ const LivePoll = ({ walletAddress }) => {
       <div className="poll-tabs">
         <button className={activeTab === 'vote' ? 'active' : ''} onClick={() => setActiveTab('vote')}>Vote</button>
         <button className={activeTab === 'create' ? 'active' : ''} onClick={() => setActiveTab('create')}>Create Poll</button>
+        <button className={activeTab === 'manage' ? 'active' : ''} onClick={() => setActiveTab('manage')}>Manage</button>
       </div>
 
       {status.msg && <div className={`status-banner ${status.type}`}>{status.msg}</div>}
@@ -175,6 +176,33 @@ const LivePoll = ({ walletAddress }) => {
             {loading ? 'Creating...' : 'Create Poll on Ledger'}
           </button>
         </form>
+      )}
+      {activeTab === 'manage' && (
+        <div className="manage-section">
+          <h3>Manage Your Polls</h3>
+          <p className="hint-text">Enter your Poll ID to close it. Only the creator can perform this action.</p>
+          <div className="poll-id-input">
+            <input type="number" value={pollId} onChange={(e) => setPollId(e.target.value)} placeholder="Poll ID" />
+          </div>
+          <button 
+            className="btn btn-danger" 
+            onClick={async () => {
+              if (!walletAddress) return setStatus({ type: 'error', msg: 'Connect wallet' });
+              setLoading(true);
+              try {
+                await advancedService.closePoll(walletAddress, pollId);
+                setStatus({ type: 'success', msg: `Poll #${pollId} closed successfully!` });
+              } catch (err) {
+                setStatus({ type: 'error', msg: err.message || 'Action failed' });
+              } finally {
+                setLoading(false);
+              }
+            }}
+            disabled={loading}
+          >
+            {loading ? 'Processing...' : 'Close Poll'}
+          </button>
+        </div>
       )}
     </div>
   );
