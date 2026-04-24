@@ -1,6 +1,6 @@
 const { rpc, Networks, Contract, scValToNative, Account, TransactionBuilder, nativeToScVal, Address } = require("@stellar/stellar-sdk");
 
-const TOKEN_ID = "CAOAPSP35AQ6KRWVKBDVJLNYO3TOSUF7AI2Q6YIQY2DMI2B7YD4TS4LL";
+const TOKEN_ID = "CA4NSRXEWFPDCMEBDQVUV3GHXAR5RNZV42SL2R2M42RVEADKKAQUONZJ";
 const RPC_URL = "https://soroban-testnet.stellar.org";
 
 async function checkBalance(wallet) {
