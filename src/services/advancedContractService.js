@@ -1,15 +1,11 @@
 /* global BigInt */
 import * as StellarSdk from "@stellar/stellar-sdk";
 
-// ALERT FOR DEBUGGING - If you don't see this, the code is NOT updated in your browser
-if (typeof window !== "undefined") {
-    console.log("🚀 ANTIGRAVITY_SERVICE_V4_LOADED");
-}
+console.log("🚀 PERMANENT_FIX_V5_ACTIVE");
 
 const RPC_URL = "https://soroban-testnet.stellar.org";
 const NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
 
-// Contract IDs from Environment or Defaults
 const POLL_ID = process.env.REACT_APP_ADVANCED_POLL_CONTRACT_ID || "CC6VHB7JGO6XWNWSDWPKNKNA6N63K5Z567RPGZQPBAHNZCWAVMNMSI7S";
 const POOL_ID = process.env.REACT_APP_LIQUIDITY_POOL_CONTRACT_ID || "CBUKW4W6FNO6J6E2672OZ6EXERWH3H7CBYUZXMMTNK7PFXK3WQRAVKNV";
 const TOKEN_ID = process.env.REACT_APP_XPOLL_TOKEN_CONTRACT_ID || "CA4NSRXEWFPDCMEBDQVUV3GHXAR5RNZV42SL2R2M42RVEADKKAQUONZJ";
@@ -26,57 +22,54 @@ const submitTx = async (walletAddress, buildTx) => {
     const addr = getAddr(walletAddress);
     const account = await server.getAccount(addr);
     const builder = await buildTx(account);
-    const tx = builder.build();
+    const initialTx = builder.build();
 
-    const sim = await server.simulateTransaction(tx);
+    const sim = await server.simulateTransaction(initialTx);
     if (!sim || StellarSdk.rpc.Api.isSimulationError(sim)) {
-      throw new Error("Simulation failed. Check your XPOLL/XLM balance.");
+      throw new Error("Simulation failed. Check balance or contract initialization.");
     }
 
-    // THE MOST ROBUST WAY TO GET XDR IN ALL SDK VERSIONS
-    builder.setSorobanData(sim.result.auth, sim.result.footprint, sim.result.instructions);
-    const finalTx = builder.build();
+    // Standard Soroban assembly
+    const assembledTx = StellarSdk.rpc.assembleTransaction(initialTx, sim);
     
-    // Fallback chain for XDR extraction
+    // THE ULTIMATE SAFE XDR EXTRACTION
     let xdr;
-    try {
-        xdr = finalTx.toXDR();
-    } catch (e) {
-        try {
-            xdr = StellarSdk.xdr.TransactionEnvelope.encode(finalTx.toEnvelope()).toString("base64");
-        } catch (e2) {
-            throw new Error("Fatal: Could not generate transaction XDR. SDK Version mismatch?");
-        }
+    if (assembledTx && typeof assembledTx.toXDR === 'function') {
+        xdr = assembledTx.toXDR();
+    } else if (assembledTx && assembledTx.transaction && typeof assembledTx.transaction.toXDR === 'function') {
+        xdr = assembledTx.transaction.toXDR();
+    } else {
+        // Fallback to manual building if assembly object is weird
+        builder.setSorobanData(sim.result.auth, sim.result.footprint, sim.result.instructions);
+        xdr = builder.build().toXDR();
     }
 
-    const xdrString = typeof xdr === 'string' ? xdr : xdr.toString("base64");
+    // Final string verification
+    const xdrString = (typeof xdr === 'string') ? xdr : xdr.toString("base64");
+    console.log("Broadcasting XDR:", xdrString);
 
     const { signedTxXdr } = await window.freighterApi.signTransaction(xdrString, {
       network: 'TESTNET',
       networkPassphrase: NETWORK_PASSPHRASE
     });
 
-    if (!signedTxXdr) throw new Error("Transaction rejected by wallet.");
+    if (!signedTxXdr) throw new Error("User cancelled.");
 
     const signedTx = new StellarSdk.Transaction(signedTxXdr, NETWORK_PASSPHRASE);
     const submission = await server.sendTransaction(signedTx);
 
-    if (submission.status === "ERROR") {
-        throw new Error(`Submission Error: ${submission.errorResultXdr}`);
-    }
-
     let txResult = await server.getTransaction(submission.hash);
     let retry = 0;
-    while (txResult.status === "NOT_FOUND" && retry < 20) {
-      await new Promise(r => setTimeout(r, 2000));
+    while (txResult.status === "NOT_FOUND" && retry < 25) {
+      await new Promise(r => setTimeout(r, 1500));
       txResult = await server.getTransaction(submission.hash);
       retry++;
     }
 
     if (txResult.status === "SUCCESS") return { hash: submission.hash };
-    throw new Error(`Transaction failed: ${txResult.status}`);
+    throw new Error(`Chain Status: ${txResult.status}`);
   } catch (error) {
-    console.error("SERVICE ERROR:", error);
+    console.error("TX ERROR:", error);
     throw error;
   }
 };
