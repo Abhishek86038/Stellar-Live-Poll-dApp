@@ -1,136 +1,170 @@
 import React, { useState, useEffect } from 'react';
 import './LivePoll.css';
-import * as contractService from '../services/contractService';
-
-const CONTRACT_ID = "CCPC6IAMNB3M5ULNYKIUYQAY7LD55J27MAK4F3D66WNHE7V5UA7DJMP3";
+import * as advancedService from '../services/advancedContractService';
 
 const LivePoll = ({ walletAddress }) => {
-  const [question, setQuestion] = useState("Loading poll data...");
-  const [options, setOptions] = useState([
-    { id: 0, text: 'Fast Transactions', votes: 0 },
-    { id: 1, text: 'Low Fees', votes: 0 },
-    { id: 2, text: 'Soroban Contracts', votes: 0 },
-    { id: 3, text: 'Asset Issuance', votes: 0 }
-  ]);
+  const [activeTab, setActiveTab] = useState('vote'); // 'vote', 'create', 'manage'
+  const [pollId, setPollId] = useState(1);
+  const [pollData, setPollData] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
-  const [isVoting, setIsVoting] = useState(false);
-  const [txStatus, setTxStatus] = useState(null); // 'pending', 'success', 'error'
-  const [txHash, setTxHash] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [voteAmount, setVoteAmount] = useState('1.0');
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState({ type: '', msg: '' });
 
-  const fetchResults = async () => {
+  // Creation State
+  const [newPoll, setNewPoll] = useState({
+    question: '',
+    options: ['', ''],
+    cost: '10'
+  });
+
+  const fetchPoll = async () => {
+    if (!pollId) return;
+    setLoading(true);
     try {
-      const results = await contractService.getResults(CONTRACT_ID);
-      if (results && Array.isArray(results)) {
-        setOptions(prev => prev.map((opt, i) => ({ 
-          ...opt, 
-          votes: Number(results[i]) || 0 
-        })));
-        setQuestion("What is your favorite Stellar feature?");
+      const data = await advancedService.getAdvancedPollResults(pollId);
+      if (data) {
+        setPollData(data);
+      } else {
+        setStatus({ type: 'error', msg: 'Poll not found' });
       }
     } catch (err) {
-      console.error("Fetch error:", err);
+      console.error(err);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchResults();
-    const interval = setInterval(fetchResults, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const totalVotes = options.reduce((sum, opt) => sum + (opt.votes || 0), 0);
+    fetchPoll();
+  }, [pollId]);
 
   const handleVote = async () => {
-    if (!walletAddress) {
-      setErrorMsg('Please connect your wallet first.');
-      setTxStatus('error');
-      return;
-    }
+    if (!walletAddress) return setStatus({ type: 'error', msg: 'Please connect wallet' });
     if (selectedOption === null) return;
 
-    setIsVoting(true);
-    setTxStatus('pending');
-    setErrorMsg('');
-    setTxHash('');
-
+    setLoading(true);
+    setStatus({ type: 'info', msg: 'Signing transaction...' });
     try {
-      const hash = await contractService.castVote(walletAddress, CONTRACT_ID, selectedOption);
-      setTxStatus('success');
-      setTxHash(hash);
-      fetchResults(); // Refresh results immediately
+      await advancedService.castAdvancedVote(walletAddress, pollId, selectedOption, voteAmount);
+      setStatus({ type: 'success', msg: 'Vote cast successfully!' });
+      fetchPoll();
     } catch (err) {
-      setTxStatus('error');
-      let msg = err.message || String(err);
-      
-      // BROAD-MATCH DETECTION (Fixes any bypass)
-      const isAlreadyVoted = 
-        msg.includes('Already voted') || 
-        msg.includes('Unreachable') || 
-        msg.includes('InvalidAction') ||
-        msg.toLowerCase().includes('simulation') ||
-        (msg.includes('{') && msg.includes('diagnostic'));
-
-      if (isAlreadyVoted) {
-        msg = "You have already voted in this poll! (One vote per address restriction)";
-      }
-      setErrorMsg(msg);
+      setStatus({ type: 'error', msg: err.message || 'Vote failed' });
     } finally {
-      setIsVoting(false);
+      setLoading(false);
     }
   };
 
+  const handleCreatePoll = async (e) => {
+    e.preventDefault();
+    if (!walletAddress) return setStatus({ type: 'error', msg: 'Connect wallet' });
+    
+    setLoading(true);
+    try {
+      const hash = await advancedService.createPoll(
+        walletAddress, 
+        newPoll.question, 
+        newPoll.options.filter(o => o.trim()), 
+        newPoll.cost
+      );
+      setStatus({ type: 'success', msg: `Poll created! TX: ${hash.substring(0, 8)}...` });
+      setActiveTab('vote');
+    } catch (err) {
+      setStatus({ type: 'error', msg: err.message || 'Creation failed' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addOption = () => setNewPoll({ ...newPoll, options: [...newPoll.options, ''] });
+
   return (
     <div className="live-poll-card glass-panel">
-      <h2 className="poll-question">{isLoading ? "Connecting to Stellar Ledger..." : question}</h2>
-
-      <div className="poll-options">
-        {options.map((opt, index) => {
-          const percentage = totalVotes === 0 ? 0 : Math.round(((opt.votes || 0) / totalVotes) * 100);
-          return (
-            <label key={opt.id} className={`poll-option ${selectedOption === index ? 'selected' : ''}`}>
-              <div className="option-header">
-                <div className="option-input-group">
-                  <input
-                    type="radio"
-                    name="poll-option"
-                    disabled={isVoting || isLoading}
-                    checked={selectedOption === index}
-                    onChange={() => setSelectedOption(index)}
-                  />
-                  <span className="option-text">{opt.text}</span>
-                </div>
-                <span className="option-votes">{opt.votes || 0} votes ({percentage}%)</span>
-              </div>
-              <div className="progress-bar-bg">
-                <div className="progress-bar-fill" style={{ width: `${percentage}%` }}></div>
-              </div>
-            </label>
-          );
-        })}
+      <div className="poll-tabs">
+        <button className={activeTab === 'vote' ? 'active' : ''} onClick={() => setActiveTab('vote')}>Vote</button>
+        <button className={activeTab === 'create' ? 'active' : ''} onClick={() => setActiveTab('create')}>Create Poll</button>
       </div>
 
-      <div className="poll-actions">
-        <button 
-          className="btn btn-vote" 
-          disabled={isVoting || selectedOption === null || isLoading}
-          onClick={handleVote}
-        >
-          {isVoting ? 'Processing Vote...' : 'Cast Vote'}
-        </button>
-      </div>
+      {status.msg && <div className={`status-banner ${status.type}`}>{status.msg}</div>}
 
-      {txStatus === 'pending' && <p className="status-msg info">Please sign the transaction in Freighter...</p>}
-      {txStatus === 'success' && (
-        <div className="status-msg success">
-          <p>✅ Your vote has been recorded on the ledger!</p>
-          {txHash && <small>Hash: {txHash.substring(0, 10)}...</small>}
+      {activeTab === 'vote' && (
+        <div className="vote-section">
+          <div className="poll-id-input">
+            <label>Poll ID: </label>
+            <input type="number" value={pollId} onChange={(e) => setPollId(e.target.value)} />
+            <button onClick={fetchPoll} className="btn-small">Load</button>
+          </div>
+
+          {pollData ? (
+            <div className="poll-content">
+              <h3 className="poll-question">{pollData.question}</h3>
+              <div className="poll-options">
+                {pollData.options.map((opt, i) => (
+                  <label key={i} className={`poll-option ${selectedOption === i ? 'selected' : ''}`}>
+                    <input 
+                      type="radio" 
+                      name="poll" 
+                      checked={selectedOption === i} 
+                      onChange={() => setSelectedOption(i)} 
+                    />
+                    <span className="opt-text">{opt}</span>
+                    <span className="opt-votes">{Number(pollData.votes[i])} votes</span>
+                  </label>
+                ))}
+              </div>
+              <div className="vote-controls">
+                <input 
+                  type="number" 
+                  value={voteAmount} 
+                  onChange={(e) => setVoteAmount(e.target.value)} 
+                  placeholder="Stake amount"
+                />
+                <button className="btn btn-primary" onClick={handleVote} disabled={loading}>
+                  {loading ? 'Processing...' : 'Cast Vote'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p>Enter a Poll ID to begin.</p>
+          )}
         </div>
       )}
-      {txStatus === 'error' && <p className="status-msg error">❌ {errorMsg}</p>}
+
+      {activeTab === 'create' && (
+        <form className="create-poll-form" onSubmit={handleCreatePoll}>
+          <h3>Create Advanced Poll</h3>
+          <input 
+            placeholder="Poll Question" 
+            value={newPoll.question} 
+            onChange={(e) => setNewPoll({ ...newPoll, question: e.target.value })} 
+            required 
+          />
+          <div className="options-list">
+            {newPoll.options.map((opt, i) => (
+              <input 
+                key={i} 
+                placeholder={`Option ${i + 1}`} 
+                value={opt} 
+                onChange={(e) => {
+                  const opts = [...newPoll.options];
+                  opts[i] = e.target.value;
+                  setNewPoll({ ...newPoll, options: opts });
+                }} 
+                required
+              />
+            ))}
+            <button type="button" onClick={addOption} className="btn-small">+ Add Option</button>
+          </div>
+          <div className="cost-input">
+            <label>Creation Cost (XPOLL): </label>
+            <input type="number" value={newPoll.cost} onChange={(e) => setNewPoll({ ...newPoll, cost: e.target.value })} />
+          </div>
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? 'Creating...' : 'Create Poll on Ledger'}
+          </button>
+        </form>
+      )}
     </div>
   );
 };

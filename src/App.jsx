@@ -5,6 +5,7 @@ import WalletConnect from './components/WalletConnect';
 import Dashboard from './pages/Dashboard';
 import TokenSwap from './pages/TokenSwap';
 import LivePoll from './components/LivePoll';
+import LiquidityPool from './pages/LiquidityPool';
 import EventStream from './components/EventStream';
 import ToastNotification from './components/ToastNotification';
 import './styles/App.css';
@@ -47,7 +48,7 @@ const App = () => {
               <Route path="/" element={<Dashboard walletAddress={walletAddress} />} />
               <Route path="/polls" element={<LivePoll walletAddress={walletAddress} />} />
               <Route path="/swap" element={<TokenSwap walletAddress={walletAddress} />} />
-              <Route path="/pool" element={<div>Liquidity Pool Feature Coming Soon</div>} />
+              <Route path="/pool" element={<LiquidityPool walletAddress={walletAddress} />} />
             </Routes>
           </section>
         </main>

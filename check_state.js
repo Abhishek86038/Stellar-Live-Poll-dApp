@@ -8,7 +8,7 @@ async function check() {
   const server = new rpc.Server(RPC_URL);
   const contract = new Contract(CONTRACT_ADDRESS);
   
-  // Dummy tx for simulation
+  // Simulating tx to fetch state
   const { TransactionBuilder, Account } = require("@stellar/stellar-sdk");
   const dummyAccount = new Account("GBXBZYRUXADVOOB5TIBNDHMCH7TAUEEUDJDV5WLOBWIZMUVFBXHXQ76N", "0");
   

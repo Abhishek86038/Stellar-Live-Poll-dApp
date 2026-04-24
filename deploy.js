@@ -3,7 +3,12 @@ const fs = require('fs');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-const SECRET_KEY = process.env.SECRET_KEY || "SARA576LORQY7YBI5QX3NUIJDWTQA2EIXVJO2CWIUG24ALEF4TBHGU3K";
+const SECRET_KEY = process.env.SECRET_KEY;
+if (!SECRET_KEY) {
+    console.error("❌ ERROR: SECRET_KEY environment variable is missing.");
+    console.log("Please run: $env:SECRET_KEY='your-key-here'; node deploy.js");
+    process.exit(1);
+}
 const WASM_PATH = "smart-contract/target/wasm32v1-none/release/live_poll_contract.wasm";
 const RPC_URL = "https://soroban-testnet.stellar.org";
 const NETWORK_PASSPHRASE = Networks.TESTNET;

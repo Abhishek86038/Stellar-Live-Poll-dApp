@@ -2,8 +2,13 @@ const { rpc, TransactionBuilder, Networks, Keypair, Operation, Asset, xdr, scVal
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-const SECRET_KEY = "SARA576LORQY7YBI5QX3NUIJDWTQA2EIXVJO2CWIUG24ALEF4TBHGU3K";
-const CONTRACT_ADDRESS = "CAZXQEP322RSREGFHVZMISWCBJA755ZGUQNIRMT4Z6KTFBAK5PYTUAHU";
+const SECRET_KEY = process.env.SECRET_KEY;
+const CONTRACT_ADDRESS = process.env.REACT_APP_CONTRACT_ID;
+
+if (!SECRET_KEY || !CONTRACT_ADDRESS) {
+    console.error("❌ ERROR: SECRET_KEY or REACT_APP_CONTRACT_ID environment variable is missing.");
+    process.exit(1);
+}
 const RPC_URL = "https://soroban-testnet.stellar.org";
 const NETWORK_PASSPHRASE = Networks.TESTNET;
 

@@ -115,9 +115,10 @@ export const getTokenBalance = async (walletAddress) => {
     const addr = typeof walletAddress === 'string' ? walletAddress : (walletAddress.address || walletAddress.toString());
     const contract = new StellarSdk.Contract(TOKEN_ID);
     
-    // Use a dummy account for read-only simulation
-    const dummyAccount = new StellarSdk.Account("GCO527YCC6DNDK3K6FN654WXAINDGNB35FUFAN3LURDENIIBD7ZFAJN6", "0");
-    const tx = new StellarSdk.TransactionBuilder(dummyAccount, {
+    // Use the connected wallet or a standard network address for simulation
+    const simulationAddr = walletAddress || "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF";
+    const simulationAccount = new StellarSdk.Account(simulationAddr, "0");
+    const tx = new StellarSdk.TransactionBuilder(simulationAccount, {
       fee: "100",
       networkPassphrase: NETWORK_PASSPHRASE
     })
@@ -137,7 +138,126 @@ export const getTokenBalance = async (walletAddress) => {
   }
 };
 
+export const initPollContract = async (walletAddress, tokenAddr) => {
+  const addr = typeof walletAddress === 'string' ? walletAddress : (walletAddress.address || walletAddress.toString());
+  const sourceAccount = await server.getAccount(addr);
+  const contract = new StellarSdk.Contract(POLL_ID);
+
+  const tx = new StellarSdk.TransactionBuilder(sourceAccount, {
+    fee: "10000",
+    networkPassphrase: NETWORK_PASSPHRASE,
+  })
+    .addOperation(contract.call("init", new StellarSdk.Address(tokenAddr).toScVal()))
+    .setTimeout(60)
+    .build();
+
+  const simResult = await server.simulateTransaction(tx);
+  const assembledTx = StellarSdk.rpc.assembleTransaction(tx, simResult).build();
+  const signedResponse = await signTransaction(assembledTx.toXDR(), { network: "TESTNET" });
+  
+  let xdr = typeof signedResponse === "string" ? signedResponse : (signedResponse.signedXdr || signedResponse.result);
+  return await server.sendTransaction(new StellarSdk.Transaction(xdr, NETWORK_PASSPHRASE));
+};
+
+export const createPoll = async (walletAddress, question, options, cost) => {
+  const addr = typeof walletAddress === 'string' ? walletAddress : (walletAddress.address || walletAddress.toString());
+  const sourceAccount = await server.getAccount(addr);
+  const contract = new StellarSdk.Contract(POLL_ID);
+
+  const costBigInt = BigInt(Math.floor(Number(cost) * 10000000));
+  const optionsVec = StellarSdk.nativeToScVal(options);
+
+  const tx = new StellarSdk.TransactionBuilder(sourceAccount, {
+    fee: "10000",
+    networkPassphrase: NETWORK_PASSPHRASE,
+  })
+    .addOperation(contract.call("create_poll", 
+      new StellarSdk.Address(addr).toScVal(),
+      StellarSdk.nativeToScVal(question),
+      optionsVec,
+      StellarSdk.nativeToScVal(costBigInt, { type: "i128" })
+    ))
+    .setTimeout(60)
+    .build();
+
+  const simResult = await server.simulateTransaction(tx);
+  if (StellarSdk.rpc.Api.isSimulationError(simResult)) throw new Error(simResult.error);
+
+  const assembledTx = StellarSdk.rpc.assembleTransaction(tx, simResult).build();
+  const signedResponse = await signTransaction(assembledTx.toXDR(), { network: "TESTNET" });
+  
+  let xdr = typeof signedResponse === "string" ? signedResponse : (signedResponse.signedXdr || signedResponse.result);
+  const submission = await server.sendTransaction(new StellarSdk.Transaction(xdr, NETWORK_PASSPHRASE));
+  return submission.hash;
+};
+
 export const castAdvancedVote = async (walletAddress, pollId, optionIndex, amount) => {
   if (!POLL_ID) throw new Error("Poll Contract not configured");
-  return "vote_tx_success";
+  
+  const addr = typeof walletAddress === 'string' ? walletAddress : (walletAddress.address || walletAddress.toString());
+  const sourceAccount = await server.getAccount(addr);
+  const contract = new StellarSdk.Contract(POLL_ID);
+
+  // Advanced Poll: vote(voter, poll_id, option_index, amount)
+  const amountBigInt = BigInt(Math.floor(Number(amount || 1) * 10000000)); 
+
+  const tx = new StellarSdk.TransactionBuilder(sourceAccount, {
+    fee: "10000",
+    networkPassphrase: NETWORK_PASSPHRASE,
+  })
+    .addOperation(contract.call("vote", 
+      new StellarSdk.Address(addr).toScVal(),
+      StellarSdk.nativeToScVal(Number(pollId), { type: "u32" }),
+      StellarSdk.nativeToScVal(Number(optionIndex), { type: "u32" }),
+      StellarSdk.nativeToScVal(amountBigInt, { type: "i128" })
+    ))
+    .setTimeout(60)
+    .build();
+
+  const simResult = await server.simulateTransaction(tx);
+  if (StellarSdk.rpc.Api.isSimulationError(simResult)) {
+    throw new Error(`Simulation failed: ${simResult.error}`);
+  }
+
+  const assembledTx = StellarSdk.rpc.assembleTransaction(tx, simResult).build();
+  
+  const signedResponse = await signTransaction(assembledTx.toXDR(), {
+    network: "TESTNET",
+    networkPassphrase: NETWORK_PASSPHRASE
+  });
+
+  let xdr = "";
+  if (typeof signedResponse === "string") xdr = signedResponse;
+  else if (signedResponse?.signedXdr) xdr = signedResponse.signedXdr;
+  else if (signedResponse?.result) xdr = signedResponse.result;
+
+  const signedTx = new StellarSdk.Transaction(xdr, NETWORK_PASSPHRASE);
+  const submission = await server.sendTransaction(signedTx);
+  
+  if (submission.status === "ERROR") throw new Error("Transaction rejected.");
+  return submission.hash;
+};
+
+export const getAdvancedPollResults = async (pollId) => {
+  if (!POLL_ID) return null;
+  try {
+    const contract = new StellarSdk.Contract(POLL_ID);
+    const simAccount = new StellarSdk.Account("GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF", "0");
+    
+    const tx = new StellarSdk.TransactionBuilder(simAccount, {
+      fee: "100",
+      networkPassphrase: NETWORK_PASSPHRASE
+    })
+      .addOperation(contract.call("get_poll_info", StellarSdk.nativeToScVal(Number(pollId), { type: "u32" })))
+      .setTimeout(30)
+      .build();
+
+    const sim = await server.simulateTransaction(tx);
+    if (!sim.result || !sim.result.retval) return null;
+    
+    return StellarSdk.scValToNative(sim.result.retval);
+  } catch (err) {
+    console.error("Poll fetch error:", err);
+    return null;
+  }
 };

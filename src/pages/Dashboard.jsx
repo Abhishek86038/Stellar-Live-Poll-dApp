@@ -4,10 +4,10 @@ import * as advancedService from '../services/advancedContractService';
 
 const Dashboard = ({ walletAddress }) => {
   const [balance, setBalance] = useState(0);
-  const [stats] = useState({
-    pollsCreated: 3,
-    votesCast: 12,
-    rewardsEarned: 450
+  const [stats, setStats] = useState({
+    pollsCreated: 0,
+    votesCast: 0,
+    rewardsEarned: 0
   });
 
   useEffect(() => {
@@ -52,16 +52,11 @@ const Dashboard = ({ walletAddress }) => {
       <div className="recent-activity-section glass-panel mt-6">
         <h3>Recent Activity</h3>
         <div className="activity-list">
-          <div className="activity-item">
-            <span className="dot success"></span>
-            <span className="activity-text">Voted on "Soroban Adoption" poll</span>
-            <span className="activity-time">2h ago</span>
-          </div>
-          <div className="activity-item">
-            <span className="dot info"></span>
-            <span className="activity-text">Swapped 100 XLM for 400 XPOLL</span>
-            <span className="activity-time">5h ago</span>
-          </div>
+          {walletAddress ? (
+            <p className="empty-msg">Waiting for ledger events for {walletAddress.substring(0, 8)}...</p>
+          ) : (
+            <p className="empty-msg">Connect your wallet to see recent activity.</p>
+          )}
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@ import * as StellarSdk from "@stellar/stellar-sdk";
 import { signTransaction } from "@stellar/freighter-api";
 
 const TESTNET_PASSPHRASE = "Test SDF Network ; September 2015";
-const CONTRACT_ID = "CCPC6IAMNB3M5ULNYKIUYQAY7LD55J27MAK4F3D66WNHE7V5UA7DJMP3";
+const CONTRACT_ID = "CCPC6IAMNB3M5ULNYKIUYQAY7LD55J27MAK4F3D66WNHE7V5UA7DJMP3"; // Primary fallback, should use process.env.REACT_APP_CONTRACT_ID in production
 const RPC_URL = "https://soroban-testnet.stellar.org";
 
 let server;
@@ -84,16 +84,29 @@ export const castVote = async (walletAddress, contractAddress, optionIndex) => {
   }
 };
 
-export const getResults = async (contractAddress) => {
+export const getResults = async (walletAddress, contractAddress) => {
   try {
     const contract = new StellarSdk.Contract(contractAddress || CONTRACT_ID);
-    const dummy = new StellarSdk.Account("GCO527YCC6DNDK3K6FN654WXAINDGNB35FUFAN3LURDENIIBD7ZFAJN6", "0");
-    const tx = new StellarSdk.TransactionBuilder(dummy, { fee: "100", networkPassphrase: TESTNET_PASSPHRASE })
+    
+    // Use the connected wallet if available, otherwise a generic public address for read-only simulation
+    const sourceAddr = walletAddress || "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"; 
+    const sourceAccount = new StellarSdk.Account(sourceAddr, "0");
+
+    const tx = new StellarSdk.TransactionBuilder(sourceAccount, { 
+      fee: "100", 
+      networkPassphrase: TESTNET_PASSPHRASE 
+    })
       .addOperation(contract.call("get_results"))
       .setTimeout(30)
       .build();
+
     const sim = await server.simulateTransaction(tx);
     if (!sim.result || !sim.result.retval) return [];
+    
+    // Native conversion of Soroban ScVal
     return StellarSdk.scValToNative(sim.result.retval);
-  } catch (err) { return []; }
+  } catch (err) { 
+    console.error("Fetch Results Error:", err);
+    return []; 
+  }
 };
