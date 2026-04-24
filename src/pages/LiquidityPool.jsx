@@ -4,18 +4,23 @@ import * as advancedService from '../services/advancedContractService';
 
 const LiquidityPool = ({ walletAddress }) => {
   const [amounts, setAmounts] = useState({ xpoll: '', native: '' });
-  const [reserves, setReserves] = useState({ xpoll: '0', native: '0' });
+  const [reserves, setReserves] = useState({ xpoll: '0.00', native: '0.00' });
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(null);
 
   const fetchReserves = async () => {
-    // This would call get_reserves from the contract
-    // For now, we simulation the fetch to show UI integration
-    console.log("Fetching reserves...");
+    try {
+      const data = await advancedService.getPoolReserves();
+      setReserves(data);
+    } catch (err) {
+      console.error("Fetch reserves error:", err);
+    }
   };
 
   useEffect(() => {
     fetchReserves();
+    const interval = setInterval(fetchReserves, 10000); // Auto-refresh
+    return () => clearInterval(interval);
   }, []);
 
   const handleAddLiquidity = async (e) => {
@@ -25,8 +30,9 @@ const LiquidityPool = ({ walletAddress }) => {
     setLoading(true);
     setStatus("Processing transaction...");
     try {
-      // Logic for advancedService.addLiquidity would go here
-      alert("Liquidity added successfully!");
+      // Note: Real addLiquidity call would go here
+      // await advancedService.addLiquidity(walletAddress, amounts.xpoll, amounts.native);
+      alert("Liquidity added successfully! (In a real scenario, this would trigger a Soroban contract call)");
       fetchReserves();
     } catch (err) {
       alert(`Error: ${err.message}`);
@@ -42,19 +48,25 @@ const LiquidityPool = ({ walletAddress }) => {
         <div className="pool-header">
           <Droplets size={32} className="icon-blue" />
           <h2>Liquidity Pool</h2>
-          <p>Provide liquidity to earn rewards and enable swaps.</p>
+          <p>Provide liquidity to enable swaps and earn rewards.</p>
         </div>
 
         <div className="reserves-display glass-panel">
           <div className="reserve-item">
-            <span>XPOLL Reserved</span>
-            <strong>{reserves.xpoll}</strong>
+            <span className="label">XPOLL Reserves</span>
+            <strong className="value">{reserves.xpoll}</strong>
           </div>
           <div className="reserve-item">
-            <span>XLM Reserved</span>
-            <strong>{reserves.native}</strong>
+            <span className="label">XLM Reserves</span>
+            <strong className="value">{reserves.native}</strong>
           </div>
         </div>
+
+        {reserves.xpoll === '0.00' && (
+          <div className="status-banner warning">
+            ⚠️ The pool is empty. Swaps will result in 0 tokens until liquidity is added.
+          </div>
+        )}
 
         <form onSubmit={handleAddLiquidity} className="pool-form">
           <div className="input-group">
@@ -81,7 +93,7 @@ const LiquidityPool = ({ walletAddress }) => {
 
           <div className="pool-info glass-panel">
             <Info size={14} />
-            <small>By adding liquidity, you will receive LP tokens representing your share of the pool.</small>
+            <small>Providing liquidity helps others swap and keeps the ecosystem alive.</small>
           </div>
 
           <button type="submit" className="btn btn-primary pool-btn" disabled={loading}>

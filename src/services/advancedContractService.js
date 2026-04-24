@@ -130,11 +130,36 @@ export const getTokenBalance = async (walletAddress) => {
     if (!sim.result || !sim.result.retval) return "0.00";
     
     const rawBalance = StellarSdk.scValToNative(sim.result.retval);
-    // Convert from 7-decimal stroops to human-readable
-    return (Number(rawBalance) / 10000000).toFixed(2);
+    // Standard Stellar 7-decimal conversion
+    const formatted = (Number(rawBalance) / 10000000);
+    return formatted > 0 ? formatted.toFixed(2) : Number(rawBalance).toString();
   } catch (err) {
     console.error("Balance fetch error:", err);
     return "0.00";
+  }
+};
+
+export const getPoolReserves = async () => {
+  if (!POOL_ID) return { xpoll: '0', native: '0' };
+  try {
+    const contract = new StellarSdk.Contract(POOL_ID);
+    const simAccount = new StellarSdk.Account("GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF", "0");
+    const tx = new StellarSdk.TransactionBuilder(simAccount, { fee: "100", networkPassphrase: NETWORK_PASSPHRASE })
+      .addOperation(contract.call("get_reserves"))
+      .setTimeout(30)
+      .build();
+
+    const sim = await server.simulateTransaction(tx);
+    if (!sim.result || !sim.result.retval) return { xpoll: '0', native: '0' };
+    
+    const [rx, rn] = StellarSdk.scValToNative(sim.result.retval);
+    return {
+      xpoll: (Number(rx) / 10000000).toFixed(2),
+      native: (Number(rn) / 10000000).toFixed(2)
+    };
+  } catch (err) {
+    console.error("Reserves fetch error:", err);
+    return { xpoll: '0', native: '0' };
   }
 };
 
