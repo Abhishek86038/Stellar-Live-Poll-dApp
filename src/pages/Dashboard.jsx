@@ -26,12 +26,11 @@ const Dashboard = ({ walletAddress }) => {
       setStats(prev => ({ ...prev, xlmBalance: xlm }));
       setActivity(recent);
 
-      // Fetch real poll count (Iterative check for demonstration)
+      // Check for first 3 polls only to avoid noise
       let count = 0;
-      for (let i = 1; i <= 10; i++) {
+      for (let i = 1; i <= 3; i++) {
         const p = await advancedService.getAdvancedPollResults(i);
         if (p) count = i;
-        else break;
       }
       setStats(prev => ({ ...prev, pollsCreated: count }));
     } catch (err) {
