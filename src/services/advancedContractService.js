@@ -1,5 +1,4 @@
 import * as StellarSdk from "@stellar/stellar-sdk";
-import { getAlbedoAddress } from '@albedo-link/intent';
 
 const RPC_URL = "https://soroban-testnet.stellar.org";
 const NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
@@ -34,7 +33,7 @@ const submitTx = async (walletAddress, buildTx) => {
     networkPassphrase: NETWORK_PASSPHRASE
   });
 
-  if (!signedTxXdr) throw new Error("Signing cancelled or failed.");
+  if (!signedTxXdr) throw new Error("Signing cancelled.");
 
   // 3. Send
   const signedTx = new StellarSdk.Transaction(signedTxXdr, NETWORK_PASSPHRASE);
@@ -44,7 +43,7 @@ const submitTx = async (walletAddress, buildTx) => {
     throw new Error(`Transaction rejected: ${submission.errorResultXdr || "Unknown error"}`);
   }
 
-  // 4. Wait for Result
+  // 4. Wait
   let txResult = await server.getTransaction(submission.hash);
   let retry = 0;
   while (txResult.status === "NOT_FOUND" && retry < 12) {
@@ -61,7 +60,7 @@ const submitTx = async (walletAddress, buildTx) => {
   return { hash: submission.hash, pollId: null };
 };
 
-// ─── Core Functions ───────────────────────────────────────────────────────────
+// ─── Public API ───────────────────────────────────────────────────────────────
 
 export const createPoll = async (walletAddress, question, options, cost) => {
   const contract = new StellarSdk.Contract(POLL_ID);
@@ -117,8 +116,6 @@ export const getAdvancedPollResults = async (pollId) => {
     if (sim.result && sim.result.retval) {
       return StellarSdk.scValToNative(sim.result.retval);
     }
-  } catch (e) {
-    console.error("Poll read error:", e);
-  }
+  } catch (e) {}
   return null;
 };
