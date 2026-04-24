@@ -224,7 +224,6 @@ export const createPoll = async (walletAddress, question, options, cost) => {
   const contract = new StellarSdk.Contract(POLL_ID);
 
   const costBigInt = BigInt(Math.floor(Number(cost) * 10000000));
-  const optionsVec = StellarSdk.nativeToScVal(options);
 
   const tx = new StellarSdk.TransactionBuilder(sourceAccount, {
     fee: "10000",
@@ -232,8 +231,8 @@ export const createPoll = async (walletAddress, question, options, cost) => {
   })
     .addOperation(contract.call("create_poll", 
       new StellarSdk.Address(addr).toScVal(),
-      StellarSdk.nativeToScVal(question),
-      optionsVec,
+      StellarSdk.nativeToScVal(question, { type: "string" }),
+      StellarSdk.nativeToScVal(options, { type: "vec" }),
       StellarSdk.nativeToScVal(costBigInt, { type: "i128" })
     ))
     .setTimeout(60)
