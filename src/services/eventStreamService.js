@@ -1,24 +1,50 @@
+import * as StellarSdk from '@stellar/stellar-sdk';
+
+const RPC_URL = "https://soroban-testnet.stellar.org";
+const server = new StellarSdk.rpc.Server(RPC_URL);
+
 class EventStreamService {
-  constructor(contractIds = []) {
-    this.contractIds = contractIds;
+  constructor() {
     this.listeners = [];
     this.isConnected = false;
-    this.mockInterval = null;
+    this.pollInterval = null;
+    this.lastLedger = 0;
   }
 
-  connect() {
+  async connect(contractIds = []) {
     this.isConnected = true;
-    this.notifyListeners({ type: 'CONNECTED', message: 'Real-time Event Stream Active' });
+    this.notifyListeners({ type: 'CONNECTED', message: 'Real-time Ledger Connection Active' });
     
-    // Simulate real-time events for demonstration until real RPC event streaming is configured
-    this.mockInterval = setInterval(() => {
-      const mockEvents = [
-        { type: 'PollCreated', message: 'New poll created: "Future of Stellar?"', timestamp: Date.now() },
-        { type: 'VoteCast', message: 'User ...JN6 cast 100 XPOLL vote', timestamp: Date.now() },
-        { type: 'SwapExecuted', message: 'Swap: 50 XLM -> 200 XPOLL', timestamp: Date.now() },
-      ];
-      const randomEvent = mockEvents[Math.floor(Math.random() * mockEvents.length)];
-      this.notifyListeners(randomEvent);
+    // Fetch initial last ledger to start from
+    try {
+      const info = await server.getLatestLedger();
+      this.lastLedger = info.sequence;
+    } catch (e) {
+      this.lastLedger = 0;
+    }
+
+    // Start polling the RPC for real events
+    this.pollInterval = setInterval(async () => {
+      try {
+        const events = await server.getEvents({
+          startLedger: this.lastLedger,
+          filters: contractIds.length > 0 ? [{ contractIds }] : []
+        });
+
+        if (events.events && events.events.length > 0) {
+          events.events.forEach(event => {
+            this.notifyListeners({
+              type: 'ON_CHAIN_EVENT',
+              message: `Contract Event: ${event.type}`,
+              timestamp: Date.now(),
+              raw: event
+            });
+          });
+          this.lastLedger = events.latestLedger + 1;
+        }
+      } catch (err) {
+        console.error("RPC Event Error:", err);
+      }
     }, 10000);
   }
 
@@ -35,7 +61,7 @@ class EventStreamService {
 
   disconnect() {
     this.isConnected = false;
-    if (this.mockInterval) clearInterval(this.mockInterval);
+    if (this.pollInterval) clearInterval(this.pollInterval);
     this.notifyListeners({ type: 'DISCONNECTED', message: 'Stream Disconnected' });
   }
 }

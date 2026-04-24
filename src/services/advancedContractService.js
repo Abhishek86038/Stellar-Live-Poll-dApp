@@ -178,6 +178,25 @@ export const getNativeBalance = async (walletAddress) => {
   }
 };
 
+export const getRecentActivity = async (walletAddress) => {
+  if (!walletAddress) return [];
+  try {
+    const addr = typeof walletAddress === 'string' ? walletAddress : (walletAddress.address || walletAddress.toString());
+    const horizonUrl = "https://horizon-testnet.stellar.org";
+    const resp = await fetch(`${horizonUrl}/accounts/${addr}/transactions?limit=5&order=desc`);
+    const data = await resp.json();
+    
+    return data._embedded.records.map(tx => ({
+      hash: tx.hash,
+      created_at: tx.created_at,
+      successful: tx.successful
+    }));
+  } catch (err) {
+    console.error("Activity fetch error:", err);
+    return [];
+  }
+};
+
 export const initPollContract = async (walletAddress, tokenAddr) => {
   const addr = typeof walletAddress === 'string' ? walletAddress : (walletAddress.address || walletAddress.toString());
   const sourceAccount = await server.getAccount(addr);
