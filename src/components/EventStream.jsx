@@ -7,7 +7,9 @@ const EventStream = () => {
   const [status, setStatus] = useState('disconnected');
 
   useEffect(() => {
-    eventStreamService.connect();
+    if (eventStreamService && eventStreamService.connect) {
+      eventStreamService.connect();
+    }
     const unsubscribe = eventStreamService.subscribe((event) => {
       if (event.type === 'CONNECTED') {
         setStatus('connected');
