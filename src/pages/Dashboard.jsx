@@ -13,6 +13,9 @@ const Dashboard = ({ walletAddress }) => {
   useEffect(() => {
     if (walletAddress) {
       advancedService.getTokenBalance(walletAddress).then(setBalance);
+      advancedService.getNativeBalance(walletAddress).then(xlm => {
+        setStats(prev => ({ ...prev, xlmBalance: xlm }));
+      });
     }
   }, [walletAddress]);
 
@@ -26,7 +29,7 @@ const Dashboard = ({ walletAddress }) => {
             <h3>XPOLL Balance</h3>
           </div>
           <div className="stat-value">{balance} <span className="denom">XPOLL</span></div>
-          <div className="stat-footer">≈ {(balance * 0.25).toFixed(2)} XLM</div>
+          <div className="stat-footer">Real Wallet Balance: {stats.xlmBalance || '0.00'} XLM</div>
         </div>
 
         {/* Stats Row */}

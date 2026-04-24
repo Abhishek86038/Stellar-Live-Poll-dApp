@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowDownUp, Info } from 'lucide-react';
 import * as advancedService from '../services/advancedContractService';
 
@@ -8,29 +8,36 @@ const TokenSwap = ({ walletAddress }) => {
   const [loading, setLoading] = useState(false);
   const [balances, setBalances] = useState({ xlm: '0.00', xpoll: '0.00' });
 
-  React.useEffect(() => {
-    const fetchBalances = async () => {
-      if (!walletAddress) return;
-      try {
-        const xpollBal = await advancedService.getTokenBalance(walletAddress);
-        setBalances(prev => ({ ...prev, xpoll: xpollBal }));
-        // Note: XLM balance would typically come from helper or horizon
-      } catch (err) {
-        console.error("Balance fetch error:", err);
-      }
-    };
-    fetchBalances();
+  const fetchBalances = useCallback(async () => {
+    if (!walletAddress) return;
+    try {
+      const [xpollBal, xlmBal] = await Promise.all([
+        advancedService.getTokenBalance(walletAddress),
+        advancedService.getNativeBalance(walletAddress)
+      ]);
+      setBalances({ xpoll: xpollBal, xlm: xlmBal });
+    } catch (err) {
+      console.error("Balance fetch error:", err);
+    }
   }, [walletAddress]);
+
+  useEffect(() => {
+    fetchBalances();
+  }, [fetchBalances]);
 
   const exchangeRate = isXPollIn ? 0.25 : 4; // 1 XPOLL = 0.25 XLM
 
   const handleSwap = async (e) => {
     e.preventDefault();
     if (!walletAddress) return alert("Connect wallet");
+    
     setLoading(true);
     try {
       await advancedService.swapTokens(walletAddress, fromAmount, isXPollIn);
       alert("Swap successful!");
+      // REFRESH BALANCES IMMEDIATELY
+      await fetchBalances();
+      setFromAmount('');
     } catch (err) {
       console.error("Swap error:", err);
       alert(`Swap failed: ${err.message || 'Unknown error'}`);
