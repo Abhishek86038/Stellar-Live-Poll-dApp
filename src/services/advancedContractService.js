@@ -3,6 +3,7 @@ import * as StellarSdk from "@stellar/stellar-sdk";
 const RPC_URL = "https://soroban-testnet.stellar.org";
 const NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
 const POLL_ID = process.env.REACT_APP_ADVANCED_POLL_CONTRACT_ID || "CCIKQ7UIWMTBEOLT734B6FMQI5JSXK7HBJPAPSDPLMWP2UHJELV2ZTOX";
+const POOL_ID = process.env.REACT_APP_LIQUIDITY_POOL_CONTRACT_ID || "CAOAPSP35AQ6KRWVKBDVJLNYO3TOSUF7AI2Q6YIQY2DMI2B7YD4TS4LL"; // Using Token ID as fallback if needed, but should be its own ID
 
 const server = new StellarSdk.rpc.Server(RPC_URL);
 
@@ -56,7 +57,7 @@ const submitTx = async (walletAddress, buildTx) => {
   return { hash: submission.hash, pollId: null };
 };
 
-// ─── Public API ───────────────────────────────────────────────────────────────
+// ─── Poll API ───────────────────────────────────────────────────────────────
 
 export const createPoll = async (walletAddress, question, options, cost) => {
   const contract = new StellarSdk.Contract(POLL_ID);
@@ -115,6 +116,57 @@ export const getAdvancedPollResults = async (pollId) => {
   } catch (e) {}
   return null;
 };
+
+// ─── Swap & Liquidity API ─────────────────────────────────────────────────────
+
+export const getPoolReserves = async () => {
+  try {
+    const contract = new StellarSdk.Contract(POOL_ID);
+    const dummy = new StellarSdk.Account("GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF", "0");
+    const tx = new StellarSdk.TransactionBuilder(dummy, { fee: "100", networkPassphrase: NETWORK_PASSPHRASE })
+      .addOperation(contract.call("get_reserves"))
+      .setTimeout(30).build();
+
+    const sim = await server.simulateTransaction(tx);
+    if (sim.result && sim.result.retval) {
+      const reserves = StellarSdk.scValToNative(sim.result.retval);
+      return {
+        xpoll: Number(reserves[0]) / 10000000,
+        native: Number(reserves[1]) / 10000000
+      };
+    }
+  } catch (e) {}
+  return { xpoll: 0, native: 0 };
+};
+
+export const swapTokens = async (walletAddress, amount, isXPollIn) => {
+  const contract = new StellarSdk.Contract(POOL_ID);
+  const method = isXPollIn ? "swap_xpoll_for_native" : "swap_native_for_xpoll";
+  
+  return await submitTx(walletAddress, (src) =>
+    new StellarSdk.TransactionBuilder(src, { fee: "10000", networkPassphrase: NETWORK_PASSPHRASE })
+      .addOperation(contract.call(method,
+        new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
+        StellarSdk.nativeToScVal(Number(amount) * 10000000, { type: "i128" })
+      ))
+      .setTimeout(60).build()
+  );
+};
+
+export const depositLiquidity = async (walletAddress, xpollAmount, nativeAmount) => {
+  const contract = new StellarSdk.Contract(POOL_ID);
+  return await submitTx(walletAddress, (src) =>
+    new StellarSdk.TransactionBuilder(src, { fee: "10000", networkPassphrase: NETWORK_PASSPHRASE })
+      .addOperation(contract.call("deposit",
+        new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
+        StellarSdk.nativeToScVal(Number(xpollAmount) * 10000000, { type: "i128" }),
+        StellarSdk.nativeToScVal(Number(nativeAmount) * 10000000, { type: "i128" })
+      ))
+      .setTimeout(60).build()
+  );
+};
+
+// ─── Balance & Activity API ───────────────────────────────────────────────────
 
 export const getTokenBalance = async (walletAddress) => {
   try {
