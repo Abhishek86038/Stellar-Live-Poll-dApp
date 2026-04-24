@@ -11,7 +11,7 @@ pub struct PollData {
     pub id: u32,
     pub question: String,
     pub options: Vec<String>,
-    pub votes: Vec<i128>,
+    pub votes: Vec<u32>,
     pub creator: Address,
     pub created_at: u64,
     pub status: Symbol, // "active" or "closed"
@@ -50,7 +50,7 @@ impl AdvancedPoll {
         
         let mut votes = Vec::new(&env);
         for _ in 0..options.len() {
-            votes.push_back(0i128);
+            votes.push_back(0);
         }
 
         let poll = PollData {
@@ -91,7 +91,7 @@ impl AdvancedPoll {
         token_client.transfer(&voter, &env.current_contract_address(), &amount);
 
         let mut votes = poll.votes;
-        let current_votes: i128 = votes.get(option_index).unwrap();
+        let current_votes = votes.get(option_index).unwrap();
         votes.set(option_index, current_votes + amount);  // ✅ Adds weighted amount
         poll.votes = votes;
         poll.total_reward_pool += amount;

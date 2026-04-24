@@ -91,29 +91,10 @@ const LivePoll = ({ walletAddress }) => {
   const addOption = () => setNewPoll({ ...newPoll, options: [...newPoll.options, ''] });
 
   return (
-    <div className="live-poll-card glass-panel" id="main-poll-container">
-      <div className="poll-tabs-force-display">
-        <button 
-          id="tab-vote"
-          className={activeTab === 'vote' ? 'active' : ''} 
-          onClick={() => setActiveTab('vote')}
-        >
-          🗳️ Vote
-        </button>
-        <button 
-          id="tab-create"
-          className={activeTab === 'create' ? 'active' : ''} 
-          onClick={() => setActiveTab('create')}
-        >
-          ➕ Create
-        </button>
-        <button 
-          id="tab-manage"
-          className={activeTab === 'manage' ? 'active' : ''} 
-          onClick={() => setActiveTab('manage')}
-        >
-          ⚙️ Manage
-        </button>
+    <div className="live-poll-card glass-panel">
+      <div className="poll-tabs">
+        <button className={activeTab === 'vote' ? 'active' : ''} onClick={() => setActiveTab('vote')}>Vote</button>
+        <button className={activeTab === 'create' ? 'active' : ''} onClick={() => setActiveTab('create')}>Create Poll</button>
       </div>
 
       {status.msg && <div className={`status-banner ${status.type}`}>{status.msg}</div>}
@@ -194,36 +175,6 @@ const LivePoll = ({ walletAddress }) => {
             {loading ? 'Creating...' : 'Create Poll on Ledger'}
           </button>
         </form>
-      )}
-      {activeTab === 'manage' && (
-        <div className="manage-section">
-          <h3>Manage Your Polls</h3>
-          <p className="hint-text">Enter your Poll ID to close it. Only the creator can perform this action.</p>
-          <div className="poll-id-input">
-            <input type="number" value={pollId} onChange={(e) => setPollId(e.target.value)} placeholder="Poll ID" />
-          </div>
-          <button 
-            className="btn btn-danger" 
-            onClick={async () => {
-              if (!walletAddress) return setStatus({ type: 'error', msg: 'Connect wallet' });
-              setLoading(true);
-              try {
-                await advancedService.closePoll(walletAddress, pollId);
-                alert(`Poll #${pollId} has been successfully closed on the blockchain!`);
-                setStatus({ type: 'success', msg: `Poll #${pollId} closed successfully!` });
-                setActiveTab('vote');
-                fetchPoll(); // Refresh data to show closed status
-              } catch (err) {
-                setStatus({ type: 'error', msg: err.message || 'Action failed' });
-              } finally {
-                setLoading(false);
-              }
-            }}
-            disabled={loading}
-          >
-            {loading ? 'Processing...' : 'Close Poll'}
-          </button>
-        </div>
       )}
     </div>
   );

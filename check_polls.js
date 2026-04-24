@@ -3,33 +3,32 @@ const { rpc, Networks, Contract, scValToNative, Account, TransactionBuilder, nat
 const POLL_ID = "CCIKQ7UIWMTBEOLT734B6FMQI5JSXK7HBJPAPSDPLMWP2UHJELV2ZTOX";
 const RPC_URL = "https://soroban-testnet.stellar.org";
 
-async function checkPollData(id) {
+async function checkTotal() {
     const server = new rpc.Server(RPC_URL);
     const dummy = new Account("GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF", "0");
     const pollContract = new Contract(POLL_ID);
 
-    try {
-        const tx = new TransactionBuilder(dummy, { fee: "100", networkPassphrase: Networks.TESTNET })
-            .addOperation(pollContract.call("get_poll_info", nativeToScVal(id, { type: "u32" })))
-            .setTimeout(30).build();
-        const sim = await server.simulateTransaction(tx);
-        if (sim.result && sim.result.retval) {
-            const data = scValToNative(sim.result.retval);
-            
-            // Fix BigInt for printing
-            const cleanData = JSON.parse(JSON.stringify(data, (key, value) =>
-                typeof value === 'bigint' ? value.toString() : value
-            ));
+    let total = 0;
+    console.log("Checking blockchain for created polls...");
 
-            console.log("\n--- Full Blockchain Data for Poll ID " + id + " ---");
-            console.log(cleanData);
-        } else {
-            console.log("Poll not found.");
+    for (let i = 1; i <= 20; i++) {
+        try {
+            const tx = new TransactionBuilder(dummy, { fee: "100", networkPassphrase: Networks.TESTNET })
+                .addOperation(pollContract.call("get_poll_info", nativeToScVal(i, { type: "u32" })))
+                .setTimeout(30).build();
+            const sim = await server.simulateTransaction(tx);
+            if (sim.result && sim.result.retval) {
+                const data = scValToNative(sim.result.retval);
+                console.log(`✅ Poll ID ${i} exists: "${data.question}"`);
+                total = i;
+            } else {
+                break;
+            }
+        } catch (e) {
+            break;
         }
-    } catch (e) {
-        console.error("Error:", e);
     }
+    console.log(`\nTOTAL POLLS CREATED ON-CHAIN: ${total}`);
 }
 
-const id = process.argv[2] || 5;
-checkPollData(Number(id)).catch(console.error);
+checkTotal().catch(console.error);
