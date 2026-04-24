@@ -3,7 +3,7 @@ import * as StellarSdk from '@stellar/stellar-sdk';
 import { signTransaction } from '@stellar/freighter-api';
 
 const RPC_URL = process.env.REACT_APP_RPC_URL || "https://soroban-testnet.stellar.org";
-const NETWORK_PASSPHRASE = StellarSdk.Networks.TESTNET;
+const NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
 
 // Resilient Server Initialization
 let server;
@@ -212,7 +212,7 @@ export const initPollContract = async (walletAddress, tokenAddr) => {
 
   const simResult = await server.simulateTransaction(tx);
   const assembledTx = StellarSdk.rpc.assembleTransaction(tx, simResult).build();
-  const signedResponse = await signTransaction(assembledTx.toXDR(), { network: "TESTNET" });
+  const signedResponse = await signTransaction(assembledTx.toXDR(), { network: "TESTNET", networkPassphrase: NETWORK_PASSPHRASE });
   
   let xdr = typeof signedResponse === "string" ? signedResponse : (signedResponse.signedXdr || signedResponse.result);
   return await server.sendTransaction(new StellarSdk.Transaction(xdr, NETWORK_PASSPHRASE));
@@ -243,7 +243,7 @@ export const createPoll = async (walletAddress, question, options, cost) => {
   if (StellarSdk.rpc.Api.isSimulationError(simResult)) throw new Error(simResult.error);
 
   const assembledTx = StellarSdk.rpc.assembleTransaction(tx, simResult).build();
-  const signedResponse = await signTransaction(assembledTx.toXDR(), { network: "TESTNET" });
+  const signedResponse = await signTransaction(assembledTx.toXDR(), { network: "TESTNET", networkPassphrase: NETWORK_PASSPHRASE });
   
   let xdr = typeof signedResponse === "string" ? signedResponse : (signedResponse.signedXdr || signedResponse.result);
   const submission = await server.sendTransaction(new StellarSdk.Transaction(xdr, NETWORK_PASSPHRASE));
