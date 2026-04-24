@@ -72,7 +72,15 @@ const LivePoll = ({ walletAddress }) => {
         type: 'success', 
         msg: `Poll Created! Your Poll ID is: ${result.pollId}. (TX: ${result.hash.substring(0, 8)}...)` 
       });
+      
+      // NEW: Alert and Auto-fill
+      if (result.pollId) {
+        alert(`Congratulations! Your Poll created successfully with ID: ${result.pollId}`);
+        setPollId(result.pollId);
+      }
+      
       setActiveTab('vote');
+      fetchPoll(); // Auto-load the new poll
     } catch (err) {
       setStatus({ type: 'error', msg: err.message || 'Creation failed' });
     } finally {
