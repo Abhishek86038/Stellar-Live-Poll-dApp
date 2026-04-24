@@ -3,13 +3,13 @@ import * as StellarSdk from "@stellar/stellar-sdk";
 const RPC_URL = "https://soroban-testnet.stellar.org";
 const NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
 
-// Contract IDs from .env.local
-const POLL_ID = process.env.REACT_APP_ADVANCED_POLL_CONTRACT_ID || "CCIKQ7UIWMTBEOLT734B6FMQI5JSXK7HBJPAPSDPLMWP2UHJELV2ZTOX";
-const POOL_ID = process.env.REACT_APP_LIQUIDITY_POOL_CONTRACT_ID || "CCJLAH3Y7ZYJEZH44PENQFV3XZ75452DZG2SPZNTRFAQC3MT5KGGERQV";
-const TOKEN_ID = process.env.REACT_APP_XPOLL_TOKEN_CONTRACT_ID || "CAOAPSP35AQ6KRWVKBDVJLNYO3TOSUF7AI2Q6YIQY2DMI2B7YD4TS4LL";
+// Contract IDs
+const POLL_ID = "CCIKQ7UIWMTBEOLT734B6FMQI5JSXK7HBJPAPSDPLMWP2UHJELV2ZTOX";
+const POOL_ID = "CCJLAH3Y7ZYJEZH44PENQFV3XZ75452DZG2SPZNTRFAQC3MT5KGGERQV";
+const TOKEN_ID = "CAOAPSP35AQ6KRWVKBDVJLNYO3TOSUF7AI2Q6YIQY2DMI2B7YD4TS4LL";
 
 const server = new StellarSdk.rpc.Server(RPC_URL);
-console.log("Stellar Service v1.0.5 - Ready");
+console.log("Stellar Service v1.1.0 - Ultimate Fix");
 
 const getAddr = (walletAddress) => {
   if (typeof walletAddress === 'object' && walletAddress?.address) return walletAddress.address;
@@ -23,26 +23,15 @@ const submitTx = async (walletAddress, buildTx) => {
 
   const sim = await server.simulateTransaction(tx);
   if (!sim || StellarSdk.rpc.Api.isSimulationError(sim)) {
-    throw new Error(`Contract Error: ${sim?.error || "Simulation failed. Make sure you have enough balance/permissions."}`);
+    throw new Error(`Contract Error: ${sim?.error || "Simulation failed. Check balance or permissions."}`);
   }
 
-  // ─── ROBUST ASSEMBLE ───
   let xdr;
   try {
-    // Attempt 1: Standard SDK method
     const assembled = StellarSdk.rpc.assembleTransaction(tx, sim);
-    if (assembled && assembled.toXDR) {
-      xdr = assembled.toXDR();
-    } else if (assembled && assembled.transaction && assembled.transaction.toXDR) {
-      xdr = assembled.transaction.toXDR();
-    } else {
-      throw new Error("Standard assembly failed");
-    }
+    xdr = assembled.toXDR ? assembled.toXDR() : assembled.transaction.toXDR();
   } catch (e) {
-    // Attempt 2: Manual Assembly Fallback
-    console.warn("Manual assembly fallback triggered.");
     tx.setSorobanData(sim.result.auth, sim.result.footprint, sim.result.instructions);
-    // Add simulation-derived fee if needed, or stick to provided fee
     xdr = tx.build().toXDR();
   }
 
@@ -62,7 +51,7 @@ const submitTx = async (walletAddress, buildTx) => {
 
   let txResult = await server.getTransaction(submission.hash);
   let retry = 0;
-  while (txResult.status === "NOT_FOUND" && retry < 12) {
+  while (txResult.status === "NOT_FOUND" && retry < 15) {
     await new Promise(r => setTimeout(r, 2000));
     txResult = await server.getTransaction(submission.hash);
     retry++;
@@ -73,7 +62,7 @@ const submitTx = async (walletAddress, buildTx) => {
     return { hash: submission.hash, pollId: result };
   }
 
-  return { hash: submission.hash, pollId: null };
+  throw new Error("Transaction timed out or failed on ledger.");
 };
 
 // ─── Poll API ───────────────────────────────────────────────────────────────
@@ -88,7 +77,7 @@ export const createPoll = async (walletAddress, question, options, cost) => {
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
         StellarSdk.nativeToScVal(question, { type: "string" }),
         StellarSdk.xdr.ScVal.scvVec(scOptions),
-        StellarSdk.nativeToScVal(Number(cost) * 10000000, { type: "i128" })
+        StellarSdk.nativeToScVal(BigInt(Number(cost) * 10000000), { type: "i128" })
       ))
       .setTimeout(60).build()
   );
@@ -102,7 +91,7 @@ export const castAdvancedVote = async (walletAddress, pollId, optionIndex, amoun
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
         StellarSdk.nativeToScVal(Number(pollId), { type: "u32" }),
         StellarSdk.nativeToScVal(Number(optionIndex), { type: "u32" }),
-        StellarSdk.nativeToScVal(Number(amount) * 10000000, { type: "i128" })
+        StellarSdk.nativeToScVal(BigInt(Number(amount) * 10000000), { type: "i128" })
       ))
       .setTimeout(60).build()
   );
@@ -130,7 +119,10 @@ export const getAdvancedPollResults = async (pollId) => {
 
     const sim = await server.simulateTransaction(tx);
     if (sim.result && sim.result.retval) {
-      return StellarSdk.scValToNative(sim.result.retval);
+      const data = StellarSdk.scValToNative(sim.result.retval);
+      // Ensure votes are numbers for UI
+      if (data.votes) data.votes = data.votes.map(v => Number(v));
+      return data;
     }
   } catch (e) {}
   return null;
@@ -166,7 +158,7 @@ export const swapTokens = async (walletAddress, amount, isXPollIn) => {
     new StellarSdk.TransactionBuilder(src, { fee: "10000", networkPassphrase: NETWORK_PASSPHRASE })
       .addOperation(contract.call(method,
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
-        StellarSdk.nativeToScVal(Number(amount) * 10000000, { type: "i128" })
+        StellarSdk.nativeToScVal(BigInt(Math.floor(Number(amount) * 10000000)), { type: "i128" })
       ))
       .setTimeout(60).build()
   );
@@ -178,26 +170,31 @@ export const depositLiquidity = async (walletAddress, xpollAmount, nativeAmount)
     new StellarSdk.TransactionBuilder(src, { fee: "10000", networkPassphrase: NETWORK_PASSPHRASE })
       .addOperation(contract.call("deposit",
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
-        StellarSdk.nativeToScVal(Number(xpollAmount) * 10000000, { type: "i128" }),
-        StellarSdk.nativeToScVal(Number(nativeAmount) * 10000000, { type: "i128" })
+        StellarSdk.nativeToScVal(BigInt(Math.floor(Number(xpollAmount) * 10000000)), { type: "i128" }),
+        StellarSdk.nativeToScVal(BigInt(Math.floor(Number(nativeAmount) * 10000000)), { type: "i128" })
       ))
       .setTimeout(60).build()
   );
 };
 
+// ─── Balance & Activity API ───────────────────────────────────────────────────
+
 export const getTokenBalance = async (walletAddress) => {
   try {
+    const addr = getAddr(walletAddress);
     const contract = new StellarSdk.Contract(TOKEN_ID);
     const dummy = new StellarSdk.Account("GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF", "0");
     const tx = new StellarSdk.TransactionBuilder(dummy, { fee: "100", networkPassphrase: NETWORK_PASSPHRASE })
-      .addOperation(contract.call("balance", new StellarSdk.Address(getAddr(walletAddress)).toScVal()))
+      .addOperation(contract.call("balance", new StellarSdk.Address(addr).toScVal()))
       .setTimeout(30).build();
 
     const sim = await server.simulateTransaction(tx);
     if (sim.result && sim.result.retval) {
       return Number(StellarSdk.scValToNative(sim.result.retval)) / 10000000;
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error("Token balance error:", e);
+  }
   return 0;
 };
 
