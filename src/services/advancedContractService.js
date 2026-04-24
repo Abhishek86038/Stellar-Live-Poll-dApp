@@ -24,25 +24,35 @@ const submitTx = async (walletAddress, buildTx) => {
 
   const sim = await server.simulateTransaction(tx);
   if (!sim || StellarSdk.rpc.Api.isSimulationError(sim)) {
-    throw new Error(`Simulation failed: ${JSON.stringify(sim?.error || "Unknown error")}`);
+    console.error("Simulation Result:", sim);
+    throw new Error(`Simulation failed: Check your balance or contract state.`);
   }
 
   let xdr;
   try {
-    // Attempt standard assembly
+    // 1. Try SDK's assembleTransaction
     const assembled = StellarSdk.rpc.assembleTransaction(tx, sim);
+    
+    // Safety check for toXDR existence
     if (assembled && typeof assembled.toXDR === 'function') {
-        xdr = assembled.toXDR();
+      xdr = assembled.toXDR();
     } else if (assembled && assembled.transaction && typeof assembled.transaction.toXDR === 'function') {
-        xdr = assembled.transaction.toXDR();
+      xdr = assembled.transaction.toXDR();
     } else {
-        throw new Error("Assembly failed to return valid transaction object");
+      // 2. Fallback: Manual Injection
+      builder.setSorobanData(sim.result.auth, sim.result.footprint, sim.result.instructions);
+      xdr = builder.build().toXDR();
     }
   } catch (e) {
-    // Fallback: Manual data injection
-    console.warn("Manual assembly fallback triggered", e);
+    console.warn("Assembly fallback triggered:", e);
     builder.setSorobanData(sim.result.auth, sim.result.footprint, sim.result.instructions);
     xdr = builder.build().toXDR();
+  }
+
+  // Final check to ensure XDR is a string before signing
+  if (typeof xdr !== 'string') {
+    if (xdr && typeof xdr.toString === 'function') xdr = xdr.toString();
+    else throw new Error("Failed to generate valid XDR string.");
   }
 
   const { signedTxXdr } = await window.freighterApi.signTransaction(xdr, {
@@ -50,19 +60,20 @@ const submitTx = async (walletAddress, buildTx) => {
     networkPassphrase: NETWORK_PASSPHRASE
   });
 
-  if (!signedTxXdr) throw new Error("User cancelled signing.");
+  if (!signedTxXdr) throw new Error("Transaction cancelled by user.");
 
   const signedTx = new StellarSdk.Transaction(signedTxXdr, NETWORK_PASSPHRASE);
   const submission = await server.sendTransaction(signedTx);
 
   if (submission.status === "ERROR") {
-    throw new Error(`Submission Error: ${submission.errorResultXdr}`);
+    throw new Error(`Chain Error: ${submission.errorResultXdr}`);
   }
 
+  // Wait for confirmation
   let txResult = await server.getTransaction(submission.hash);
   let retry = 0;
-  while (txResult.status === "NOT_FOUND" && retry < 20) {
-    await new Promise(r => setTimeout(r, 1500));
+  while (txResult.status === "NOT_FOUND" && retry < 25) {
+    await new Promise(r => setTimeout(r, 1000));
     txResult = await server.getTransaction(submission.hash);
     retry++;
   }
@@ -71,13 +82,13 @@ const submitTx = async (walletAddress, buildTx) => {
     return { hash: submission.hash, returnValue: txResult.returnValue };
   }
   
-  throw new Error(`Transaction failed: ${txResult.status}`);
+  throw new Error(`Final Transaction Status: ${txResult.status}`);
 };
 
 export const createPoll = async (walletAddress, question, options, cost) => {
   const contract = new StellarSdk.Contract(POLL_ID);
   return await submitTx(walletAddress, (src) =>
-    new StellarSdk.TransactionBuilder(src, { fee: "20000", networkPassphrase: NETWORK_PASSPHRASE })
+    new StellarSdk.TransactionBuilder(src, { fee: "30000", networkPassphrase: NETWORK_PASSPHRASE })
       .addOperation(contract.call("create_poll",
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
         StellarSdk.nativeToScVal(question, { type: "string" }),
@@ -91,7 +102,7 @@ export const createPoll = async (walletAddress, question, options, cost) => {
 export const castAdvancedVote = async (walletAddress, pollId, optionIndex, amount) => {
   const contract = new StellarSdk.Contract(POLL_ID);
   return await submitTx(walletAddress, (src) =>
-    new StellarSdk.TransactionBuilder(src, { fee: "20000", networkPassphrase: NETWORK_PASSPHRASE })
+    new StellarSdk.TransactionBuilder(src, { fee: "30000", networkPassphrase: NETWORK_PASSPHRASE })
       .addOperation(contract.call("vote",
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
         StellarSdk.nativeToScVal(Number(pollId), { type: "u32" }),
@@ -105,7 +116,7 @@ export const castAdvancedVote = async (walletAddress, pollId, optionIndex, amoun
 export const closePoll = async (walletAddress, pollId) => {
   const contract = new StellarSdk.Contract(POLL_ID);
   return await submitTx(walletAddress, (src) =>
-    new StellarSdk.TransactionBuilder(src, { fee: "20000", networkPassphrase: NETWORK_PASSPHRASE })
+    new StellarSdk.TransactionBuilder(src, { fee: "30000", networkPassphrase: NETWORK_PASSPHRASE })
       .addOperation(contract.call("close_poll",
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
         StellarSdk.nativeToScVal(Number(pollId), { type: "u32" })
@@ -159,7 +170,7 @@ export const swapTokens = async (walletAddress, amount, isXPollIn) => {
   const contract = new StellarSdk.Contract(POOL_ID);
   const method = isXPollIn ? "swap_xpoll_to_native" : "swap_native_to_xpoll";
   return await submitTx(walletAddress, (src) =>
-    new StellarSdk.TransactionBuilder(src, { fee: "20000", networkPassphrase: NETWORK_PASSPHRASE })
+    new StellarSdk.TransactionBuilder(src, { fee: "30000", networkPassphrase: NETWORK_PASSPHRASE })
       .addOperation(contract.call(method,
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
         StellarSdk.nativeToScVal(BigInt(Math.floor(Number(amount) * 10000000)), { type: "i128" })
@@ -171,7 +182,7 @@ export const swapTokens = async (walletAddress, amount, isXPollIn) => {
 export const depositLiquidity = async (walletAddress, xpollAmount, nativeAmount) => {
   const contract = new StellarSdk.Contract(POOL_ID);
   return await submitTx(walletAddress, (src) =>
-    new StellarSdk.TransactionBuilder(src, { fee: "20000", networkPassphrase: NETWORK_PASSPHRASE })
+    new StellarSdk.TransactionBuilder(src, { fee: "30000", networkPassphrase: NETWORK_PASSPHRASE })
       .addOperation(contract.call("add_liquidity",
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
         StellarSdk.nativeToScVal(BigInt(Math.floor(Number(xpollAmount) * 10000000)), { type: "i128" }),
