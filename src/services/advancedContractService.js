@@ -1,6 +1,8 @@
 /* global BigInt */
 import * as StellarSdk from "@stellar/stellar-sdk";
 
+console.log("🚀 ANTIGRAVITY_V3_ACTIVE");
+
 const RPC_URL = "https://soroban-testnet.stellar.org";
 const NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
 
@@ -18,36 +20,41 @@ const getAddr = (walletAddress) => {
 
 const submitTx = async (walletAddress, buildTx) => {
   try {
+    console.log("Submitting transaction...");
     const addr = getAddr(walletAddress);
     const account = await server.getAccount(addr);
+    
+    // Explicitly use the imported StellarSdk for builder
     const builder = await buildTx(account);
     const tx = builder.build();
 
     const sim = await server.simulateTransaction(tx);
     if (!sim || StellarSdk.rpc.Api.isSimulationError(sim)) {
-      console.error("Simulation Details:", sim);
-      throw new Error("Simulation failed. Make sure you have enough XLM/XPOLL and the pool is initialized.");
+      throw new Error("Simulation failed. Check balance.");
     }
 
-    // Direct and robust XDR generation
+    // Direct data injection
     builder.setSorobanData(sim.result.auth, sim.result.footprint, sim.result.instructions);
     const finalTx = builder.build();
     
-    // Safety check for toXDR method
-    if (typeof finalTx.toXDR !== 'function') {
-        console.error("Final Transaction Object:", finalTx);
-        throw new Error("SDK Error: build() did not return a valid transaction object.");
+    // EXTREMELY SAFE XDR EXTRACTION
+    let xdr;
+    if (finalTx && typeof finalTx.toXDR === 'function') {
+        xdr = finalTx.toXDR();
+    } else {
+        // Ultimate fallback for broken objects
+        xdr = StellarSdk.xdr.TransactionEnvelope.encode(finalTx.toEnvelope()).toString("base64");
     }
 
-    const xdr = finalTx.toXDR();
-    const xdrString = typeof xdr === 'string' ? xdr : xdr.toString();
+    const xdrString = typeof xdr === 'string' ? xdr : xdr.toString("base64");
+    console.log("Final XDR:", xdrString);
 
     const { signedTxXdr } = await window.freighterApi.signTransaction(xdrString, {
       network: 'TESTNET',
       networkPassphrase: NETWORK_PASSPHRASE
     });
 
-    if (!signedTxXdr) throw new Error("Signing cancelled.");
+    if (!signedTxXdr) throw new Error("Cancelled.");
 
     const signedTx = new StellarSdk.Transaction(signedTxXdr, NETWORK_PASSPHRASE);
     const submission = await server.sendTransaction(signedTx);
@@ -61,9 +68,9 @@ const submitTx = async (walletAddress, buildTx) => {
     }
 
     if (txResult.status === "SUCCESS") return { hash: submission.hash };
-    throw new Error(`Transaction failed with status: ${txResult.status}`);
+    throw new Error(`Failed: ${txResult.status}`);
   } catch (error) {
-    console.error("Submission Failure:", error);
+    console.error("TX Error:", error);
     throw error;
   }
 };
@@ -71,7 +78,7 @@ const submitTx = async (walletAddress, buildTx) => {
 export const createPoll = async (walletAddress, question, options, cost) => {
   const contract = new StellarSdk.Contract(POLL_ID);
   return await submitTx(walletAddress, (src) =>
-    new StellarSdk.TransactionBuilder(src, { fee: "35000", networkPassphrase: NETWORK_PASSPHRASE })
+    new StellarSdk.TransactionBuilder(src, { fee: "40000", networkPassphrase: NETWORK_PASSPHRASE })
       .addOperation(contract.call("create_poll",
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
         StellarSdk.nativeToScVal(question, { type: "string" }),
@@ -85,7 +92,7 @@ export const createPoll = async (walletAddress, question, options, cost) => {
 export const castAdvancedVote = async (walletAddress, pollId, optionIndex, amount) => {
   const contract = new StellarSdk.Contract(POLL_ID);
   return await submitTx(walletAddress, (src) =>
-    new StellarSdk.TransactionBuilder(src, { fee: "35000", networkPassphrase: NETWORK_PASSPHRASE })
+    new StellarSdk.TransactionBuilder(src, { fee: "40000", networkPassphrase: NETWORK_PASSPHRASE })
       .addOperation(contract.call("vote",
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
         StellarSdk.nativeToScVal(Number(pollId), { type: "u32" }),
@@ -99,7 +106,7 @@ export const castAdvancedVote = async (walletAddress, pollId, optionIndex, amoun
 export const closePoll = async (walletAddress, pollId) => {
   const contract = new StellarSdk.Contract(POLL_ID);
   return await submitTx(walletAddress, (src) =>
-    new StellarSdk.TransactionBuilder(src, { fee: "35000", networkPassphrase: NETWORK_PASSPHRASE })
+    new StellarSdk.TransactionBuilder(src, { fee: "40000", networkPassphrase: NETWORK_PASSPHRASE })
       .addOperation(contract.call("close_poll",
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
         StellarSdk.nativeToScVal(Number(pollId), { type: "u32" })
@@ -153,7 +160,7 @@ export const swapTokens = async (walletAddress, amount, isXPollIn) => {
   const contract = new StellarSdk.Contract(POOL_ID);
   const method = isXPollIn ? "swap_xpoll_to_native" : "swap_native_to_xpoll";
   return await submitTx(walletAddress, (src) =>
-    new StellarSdk.TransactionBuilder(src, { fee: "35000", networkPassphrase: NETWORK_PASSPHRASE })
+    new StellarSdk.TransactionBuilder(src, { fee: "40000", networkPassphrase: NETWORK_PASSPHRASE })
       .addOperation(contract.call(method,
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
         StellarSdk.nativeToScVal(BigInt(Math.floor(Number(amount) * 10000000)), { type: "i128" })
@@ -165,7 +172,7 @@ export const swapTokens = async (walletAddress, amount, isXPollIn) => {
 export const depositLiquidity = async (walletAddress, xpollAmount, nativeAmount) => {
   const contract = new StellarSdk.Contract(POOL_ID);
   return await submitTx(walletAddress, (src) =>
-    new StellarSdk.TransactionBuilder(src, { fee: "35000", networkPassphrase: NETWORK_PASSPHRASE })
+    new StellarSdk.TransactionBuilder(src, { fee: "40000", networkPassphrase: NETWORK_PASSPHRASE })
       .addOperation(contract.call("add_liquidity",
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
         StellarSdk.nativeToScVal(BigInt(Math.floor(Number(xpollAmount) * 10000000)), { type: "i128" }),
