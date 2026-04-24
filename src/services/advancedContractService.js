@@ -17,14 +17,12 @@ const submitTx = async (walletAddress, buildTx) => {
   const source = await server.getAccount(addr);
   const tx = await buildTx(source);
 
-  // 1. Simulate
   const sim = await server.simulateTransaction(tx);
   if (!sim || StellarSdk.rpc.Api.isSimulationError(sim)) {
     const msg = sim?.error || "Simulation failed. Check balance or permissions.";
     throw new Error(`Contract Error: ${msg}`);
   }
 
-  // 2. Assemble & Sign
   const assembled = StellarSdk.rpc.assembleTransaction(tx, sim);
   const xdr = assembled.toXDR();
   
@@ -35,7 +33,6 @@ const submitTx = async (walletAddress, buildTx) => {
 
   if (!signedTxXdr) throw new Error("Signing cancelled.");
 
-  // 3. Send
   const signedTx = new StellarSdk.Transaction(signedTxXdr, NETWORK_PASSPHRASE);
   const submission = await server.sendTransaction(signedTx);
 
@@ -43,7 +40,6 @@ const submitTx = async (walletAddress, buildTx) => {
     throw new Error(`Transaction rejected: ${submission.errorResultXdr || "Unknown error"}`);
   }
 
-  // 4. Wait
   let txResult = await server.getTransaction(submission.hash);
   let retry = 0;
   while (txResult.status === "NOT_FOUND" && retry < 12) {
@@ -135,4 +131,25 @@ export const getTokenBalance = async (walletAddress) => {
     }
   } catch (e) {}
   return 0;
+};
+
+export const getNativeBalance = async (walletAddress) => {
+  try {
+    const horizon = new StellarSdk.Horizon.Server("https://horizon-testnet.stellar.org");
+    const account = await horizon.loadAccount(getAddr(walletAddress));
+    const native = account.balances.find(b => b.asset_type === "native");
+    return native ? native.balance : "0.00";
+  } catch (e) {
+    return "0.00";
+  }
+};
+
+export const getRecentActivity = async (walletAddress) => {
+  try {
+    const horizon = new StellarSdk.Horizon.Server("https://horizon-testnet.stellar.org");
+    const txs = await horizon.transactions().forAccount(getAddr(walletAddress)).limit(5).order("desc").call();
+    return txs.records;
+  } catch (e) {
+    return [];
+  }
 };
