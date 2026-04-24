@@ -2,8 +2,11 @@ import * as StellarSdk from "@stellar/stellar-sdk";
 
 const RPC_URL = "https://soroban-testnet.stellar.org";
 const NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
+
+// Contract IDs from .env.local
 const POLL_ID = process.env.REACT_APP_ADVANCED_POLL_CONTRACT_ID || "CCIKQ7UIWMTBEOLT734B6FMQI5JSXK7HBJPAPSDPLMWP2UHJELV2ZTOX";
-const POOL_ID = process.env.REACT_APP_LIQUIDITY_POOL_CONTRACT_ID || "CAOAPSP35AQ6KRWVKBDVJLNYO3TOSUF7AI2Q6YIQY2DMI2B7YD4TS4LL";
+const POOL_ID = process.env.REACT_APP_LIQUIDITY_POOL_CONTRACT_ID || "CCJLAH3Y7ZYJEZH44PENQFV3XZ75452DZG2SPZNTRFAQC3MT5KGGERQV";
+const TOKEN_ID = process.env.REACT_APP_XPOLL_TOKEN_CONTRACT_ID || "CAOAPSP35AQ6KRWVKBDVJLNYO3TOSUF7AI2Q6YIQY2DMI2B7YD4TS4LL";
 
 const server = new StellarSdk.rpc.Server(RPC_URL);
 
@@ -19,22 +22,11 @@ const submitTx = async (walletAddress, buildTx) => {
 
   const sim = await server.simulateTransaction(tx);
   if (!sim || StellarSdk.rpc.Api.isSimulationError(sim)) {
-    throw new Error(`Contract Error: ${sim?.error || "Simulation failed"}`);
+    throw new Error(`Contract Error: ${sim?.error || "Simulation failed. Make sure you have enough balance/permissions."}`);
   }
 
-  // ─── SAFE ASSEMBLE ───
   let assembled = StellarSdk.rpc.assembleTransaction(tx, sim);
-  
-  // Try different ways to get XDR (SDK version compatibility)
-  let xdr;
-  if (assembled.toXDR) {
-    xdr = assembled.toXDR();
-  } else if (assembled.transaction && assembled.transaction.toXDR) {
-    xdr = assembled.transaction.toXDR();
-  } else {
-    // Fallback: manually prepare if assembly fails to return transaction
-    throw new Error("SDK Error: Could not assemble transaction XDR.");
-  }
+  let xdr = assembled.toXDR ? assembled.toXDR() : assembled.transaction.toXDR();
 
   const { signedTxXdr } = await window.freighterApi.signTransaction(xdr, {
     network: 'TESTNET',
@@ -78,7 +70,7 @@ export const createPoll = async (walletAddress, question, options, cost) => {
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
         StellarSdk.nativeToScVal(question, { type: "string" }),
         StellarSdk.xdr.ScVal.scvVec(scOptions),
-        StellarSdk.nativeToScVal(Number(cost), { type: "u32" })
+        StellarSdk.nativeToScVal(Number(cost) * 10000000, { type: "i128" }) // Fixed: i128 with decimals
       ))
       .setTimeout(60).build()
   );
@@ -92,7 +84,7 @@ export const castAdvancedVote = async (walletAddress, pollId, optionIndex, amoun
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
         StellarSdk.nativeToScVal(Number(pollId), { type: "u32" }),
         StellarSdk.nativeToScVal(Number(optionIndex), { type: "u32" }),
-        StellarSdk.nativeToScVal(Number(amount), { type: "u32" })
+        StellarSdk.nativeToScVal(Number(amount) * 10000000, { type: "i128" }) // Fixed: i128 with decimals
       ))
       .setTimeout(60).build()
   );
@@ -126,6 +118,8 @@ export const getAdvancedPollResults = async (pollId) => {
   return null;
 };
 
+// ─── Swap & Liquidity API ─────────────────────────────────────────────────────
+
 export const getPoolReserves = async () => {
   try {
     const contract = new StellarSdk.Contract(POOL_ID);
@@ -148,6 +142,7 @@ export const getPoolReserves = async () => {
 
 export const swapTokens = async (walletAddress, amount, isXPollIn) => {
   const contract = new StellarSdk.Contract(POOL_ID);
+  // Important: Contract methods are usually snake_case
   const method = isXPollIn ? "swap_xpoll_for_native" : "swap_native_for_xpoll";
   
   return await submitTx(walletAddress, (src) =>
@@ -173,9 +168,10 @@ export const depositLiquidity = async (walletAddress, xpollAmount, nativeAmount)
   );
 };
 
+// ─── Balance & Activity API ───────────────────────────────────────────────────
+
 export const getTokenBalance = async (walletAddress) => {
   try {
-    const TOKEN_ID = process.env.REACT_APP_XPOLL_TOKEN_CONTRACT_ID || "CAOAPSP35AQ6KRWVKBDVJLNYO3TOSUF7AI2Q6YIQY2DMI2B7YD4TS4LL";
     const contract = new StellarSdk.Contract(TOKEN_ID);
     const dummy = new StellarSdk.Account("GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF", "0");
     const tx = new StellarSdk.TransactionBuilder(dummy, { fee: "100", networkPassphrase: NETWORK_PASSPHRASE })
