@@ -209,7 +209,10 @@ const LivePoll = ({ walletAddress }) => {
               setLoading(true);
               try {
                 await advancedService.closePoll(walletAddress, pollId);
+                alert(`Poll #${pollId} has been successfully closed on the blockchain!`);
                 setStatus({ type: 'success', msg: `Poll #${pollId} closed successfully!` });
+                setActiveTab('vote');
+                fetchPoll(); // Refresh data to show closed status
               } catch (err) {
                 setStatus({ type: 'error', msg: err.message || 'Action failed' });
               } finally {
