@@ -1,7 +1,7 @@
 /* global BigInt */
 import * as StellarSdk from "@stellar/stellar-sdk";
 
-console.log("🚀 PERMANENT_FIX_V5_ACTIVE");
+console.log("🛠️ SDK VERSION:", StellarSdk.VERSION || "Unknown");
 
 const RPC_URL = "https://soroban-testnet.stellar.org";
 const NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
@@ -22,38 +22,41 @@ const submitTx = async (walletAddress, buildTx) => {
     const addr = getAddr(walletAddress);
     const account = await server.getAccount(addr);
     const builder = await buildTx(account);
-    const initialTx = builder.build();
+    const tx = builder.build();
 
-    const sim = await server.simulateTransaction(initialTx);
+    const sim = await server.simulateTransaction(tx);
     if (!sim || StellarSdk.rpc.Api.isSimulationError(sim)) {
-      throw new Error("Simulation failed. Check balance or contract initialization.");
+      throw new Error("Simulation failed. Check balance.");
     }
 
-    // Standard Soroban assembly
-    const assembledTx = StellarSdk.rpc.assembleTransaction(initialTx, sim);
+    // Direct data injection into the builder
+    builder.setSorobanData(sim.result.auth, sim.result.footprint, sim.result.instructions);
+    const finalTx = builder.build();
     
-    // THE ULTIMATE SAFE XDR EXTRACTION
-    let xdr;
-    if (assembledTx && typeof assembledTx.toXDR === 'function') {
-        xdr = assembledTx.toXDR();
-    } else if (assembledTx && assembledTx.transaction && typeof assembledTx.transaction.toXDR === 'function') {
-        xdr = assembledTx.transaction.toXDR();
-    } else {
-        // Fallback to manual building if assembly object is weird
-        builder.setSorobanData(sim.result.auth, sim.result.footprint, sim.result.instructions);
-        xdr = builder.build().toXDR();
+    // THE ULTIMATE RAW XDR EXTRACTION - Bypasses all toXDR function issues
+    let xdrString;
+    try {
+        // Try standard way first
+        xdrString = finalTx.toXDR();
+    } catch (e) {
+        console.warn("Standard toXDR failed, trying raw envelope encoding...");
+        // Fallback to low-level XDR encoding
+        const envelope = finalTx.toEnvelope();
+        xdrString = StellarSdk.xdr.TransactionEnvelope.encode(envelope).toString("base64");
     }
 
-    // Final string verification
-    const xdrString = (typeof xdr === 'string') ? xdr : xdr.toString("base64");
-    console.log("Broadcasting XDR:", xdrString);
+    if (typeof xdrString !== "string") {
+        xdrString = xdrString.toString("base64");
+    }
+
+    console.log("Final XDR String:", xdrString);
 
     const { signedTxXdr } = await window.freighterApi.signTransaction(xdrString, {
       network: 'TESTNET',
       networkPassphrase: NETWORK_PASSPHRASE
     });
 
-    if (!signedTxXdr) throw new Error("User cancelled.");
+    if (!signedTxXdr) throw new Error("Cancelled by user.");
 
     const signedTx = new StellarSdk.Transaction(signedTxXdr, NETWORK_PASSPHRASE);
     const submission = await server.sendTransaction(signedTx);
@@ -67,9 +70,10 @@ const submitTx = async (walletAddress, buildTx) => {
     }
 
     if (txResult.status === "SUCCESS") return { hash: submission.hash };
-    throw new Error(`Chain Status: ${txResult.status}`);
+    throw new Error(`Transaction failed: ${txResult.status}`);
   } catch (error) {
-    console.error("TX ERROR:", error);
+    console.error("CRITICAL TX ERROR:", error);
+    // If it's the toXDR error, we want to know EXACTLY what the object was
     throw error;
   }
 };
