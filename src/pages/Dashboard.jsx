@@ -26,11 +26,12 @@ const Dashboard = ({ walletAddress }) => {
       setStats(prev => ({ ...prev, xlmBalance: xlm }));
       setActivity(recent);
 
-      // Check for first 3 polls only to avoid noise
+      // Check for first 20 polls now that it's safe
       let count = 0;
-      for (let i = 1; i <= 3; i++) {
+      for (let i = 1; i <= 20; i++) {
         const p = await advancedService.getAdvancedPollResults(i);
         if (p) count = i;
+        else break; // Stop when no more polls are found
       }
       setStats(prev => ({ ...prev, pollsCreated: count }));
     } catch (err) {
