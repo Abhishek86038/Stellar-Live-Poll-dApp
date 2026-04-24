@@ -47,7 +47,7 @@ const Dashboard = ({ walletAddress }) => {
             <h3>XPOLL Balance</h3>
           </div>
           <div className="stat-value">{balance} <span className="denom">XPOLL</span></div>
-          <div className="stat-footer">Real XLM Balance: {stats.xlmBalance} XLM</div>
+          {/* XLM balance hidden for now as requested */}
         </div>
 
         <div className="glass-panel stat-card anim-fade-in">
