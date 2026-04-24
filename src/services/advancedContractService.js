@@ -17,72 +17,46 @@ const getAddr = (walletAddress) => {
 };
 
 const submitTx = async (walletAddress, buildTx) => {
-  const addr = getAddr(walletAddress);
-  const account = await server.getAccount(addr);
-  const builder = await buildTx(account);
-  const tx = builder.build();
-
-  const sim = await server.simulateTransaction(tx);
-  if (!sim || StellarSdk.rpc.Api.isSimulationError(sim)) {
-    console.error("Simulation Result:", sim);
-    throw new Error(`Simulation failed: Check your balance or contract state.`);
-  }
-
-  let xdr;
   try {
-    // 1. Try SDK's assembleTransaction
-    const assembled = StellarSdk.rpc.assembleTransaction(tx, sim);
-    
-    // Safety check for toXDR existence
-    if (assembled && typeof assembled.toXDR === 'function') {
-      xdr = assembled.toXDR();
-    } else if (assembled && assembled.transaction && typeof assembled.transaction.toXDR === 'function') {
-      xdr = assembled.transaction.toXDR();
-    } else {
-      // 2. Fallback: Manual Injection
-      builder.setSorobanData(sim.result.auth, sim.result.footprint, sim.result.instructions);
-      xdr = builder.build().toXDR();
+    const addr = getAddr(walletAddress);
+    const account = await server.getAccount(addr);
+    const builder = await buildTx(account);
+    const tx = builder.build();
+
+    const sim = await server.simulateTransaction(tx);
+    if (!sim || StellarSdk.rpc.Api.isSimulationError(sim)) {
+      throw new Error("Simulation failed. Check balance/state.");
     }
-  } catch (e) {
-    console.warn("Assembly fallback triggered:", e);
+
+    // Manual Data Injection - The most reliable way
     builder.setSorobanData(sim.result.auth, sim.result.footprint, sim.result.instructions);
-    xdr = builder.build().toXDR();
+    const finalTx = builder.build();
+    const xdr = finalTx.toXDR();
+
+    const { signedTxXdr } = await window.freighterApi.signTransaction(xdr, {
+      network: 'TESTNET',
+      networkPassphrase: NETWORK_PASSPHRASE
+    });
+
+    if (!signedTxXdr) throw new Error("Cancelled.");
+
+    const signedTx = new StellarSdk.Transaction(signedTxXdr, NETWORK_PASSPHRASE);
+    const submission = await server.sendTransaction(signedTx);
+
+    let txResult = await server.getTransaction(submission.hash);
+    let retry = 0;
+    while (txResult.status === "NOT_FOUND" && retry < 20) {
+      await new Promise(r => setTimeout(r, 1500));
+      txResult = await server.getTransaction(submission.hash);
+      retry++;
+    }
+
+    if (txResult.status === "SUCCESS") return { hash: submission.hash };
+    throw new Error(`Failed: ${txResult.status}`);
+  } catch (error) {
+    console.error("Submit Error:", error);
+    throw error;
   }
-
-  // Final check to ensure XDR is a string before signing
-  if (typeof xdr !== 'string') {
-    if (xdr && typeof xdr.toString === 'function') xdr = xdr.toString();
-    else throw new Error("Failed to generate valid XDR string.");
-  }
-
-  const { signedTxXdr } = await window.freighterApi.signTransaction(xdr, {
-    network: 'TESTNET',
-    networkPassphrase: NETWORK_PASSPHRASE
-  });
-
-  if (!signedTxXdr) throw new Error("Transaction cancelled by user.");
-
-  const signedTx = new StellarSdk.Transaction(signedTxXdr, NETWORK_PASSPHRASE);
-  const submission = await server.sendTransaction(signedTx);
-
-  if (submission.status === "ERROR") {
-    throw new Error(`Chain Error: ${submission.errorResultXdr}`);
-  }
-
-  // Wait for confirmation
-  let txResult = await server.getTransaction(submission.hash);
-  let retry = 0;
-  while (txResult.status === "NOT_FOUND" && retry < 25) {
-    await new Promise(r => setTimeout(r, 1000));
-    txResult = await server.getTransaction(submission.hash);
-    retry++;
-  }
-
-  if (txResult.status === "SUCCESS") {
-    return { hash: submission.hash, returnValue: txResult.returnValue };
-  }
-  
-  throw new Error(`Final Transaction Status: ${txResult.status}`);
 };
 
 export const createPoll = async (walletAddress, question, options, cost) => {
