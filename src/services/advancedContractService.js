@@ -115,8 +115,8 @@ export const getTokenBalance = async (walletAddress) => {
     const addr = typeof walletAddress === 'string' ? walletAddress : (walletAddress.address || walletAddress.toString());
     const contract = new StellarSdk.Contract(TOKEN_ID);
     
-    // Use the connected wallet or a standard network address for simulation
-    const simulationAddr = walletAddress || "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF";
+    // Use a string address for simulation account
+    const simulationAddr = typeof walletAddress === 'string' ? walletAddress : (walletAddress.address || "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF");
     const simulationAccount = new StellarSdk.Account(simulationAddr, "0");
     const tx = new StellarSdk.TransactionBuilder(simulationAccount, {
       fee: "100",
