@@ -121,11 +121,16 @@ export const createPoll = async (walletAddress, question, options, cost) => {
     const contract = new StellarSdk.Contract(POLL_ID);
     const costBigInt = BigInt(Math.floor(Number(cost) * 10000000));
 
+    // Correctly encode Vec<String> for Soroban contract
+    const optionsScVal = StellarSdk.xdr.ScVal.scvVec(
+      options.map(opt => StellarSdk.nativeToScVal(String(opt), { type: "string" }))
+    );
+
     const tx = new StellarSdk.TransactionBuilder(sourceAccount, { fee: "10000", networkPassphrase: NETWORK_PASSPHRASE })
       .addOperation(contract.call("create_poll", 
         new StellarSdk.Address(addr).toScVal(),
-        StellarSdk.nativeToScVal(question),
-        StellarSdk.nativeToScVal(options),
+        StellarSdk.nativeToScVal(String(question), { type: "string" }),
+        optionsScVal,
         StellarSdk.nativeToScVal(costBigInt, { type: "i128" })
       ))
       .setTimeout(60).build();
