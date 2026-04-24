@@ -62,13 +62,16 @@ const LivePoll = ({ walletAddress }) => {
     
     setLoading(true);
     try {
-      const hash = await advancedService.createPoll(
+      const result = await advancedService.createPoll(
         walletAddress, 
         newPoll.question, 
         newPoll.options.filter(o => o.trim()), 
         newPoll.cost
       );
-      setStatus({ type: 'success', msg: `Poll created! TX: ${hash.substring(0, 8)}...` });
+      setStatus({ 
+        type: 'success', 
+        msg: `Poll Created! Your Poll ID is: ${result.pollId}. (TX: ${result.hash.substring(0, 8)}...)` 
+      });
       setActiveTab('vote');
     } catch (err) {
       setStatus({ type: 'error', msg: err.message || 'Creation failed' });

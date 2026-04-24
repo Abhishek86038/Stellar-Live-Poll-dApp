@@ -92,7 +92,22 @@ const submitTx = async (walletAddress, buildFn) => {
     throw new Error(`Transaction rejected: ${submission.errorResultXdr || "Unknown error"}`);
   }
 
-  return submission.hash;
+  // NEW: Wait for transaction to be included in ledger to get the result
+  let txResult = await server.getTransaction(submission.hash);
+  let retry = 0;
+  while (txResult.status === "NOT_FOUND" && retry < 10) {
+    await new Promise(r => setTimeout(r, 2000));
+    txResult = await server.getTransaction(submission.hash);
+    retry++;
+  }
+
+  if (txResult.status === "SUCCESS") {
+    // Parse the return value from the transaction result
+    const result = StellarSdk.scValToNative(txResult.returnValue);
+    return { hash: submission.hash, pollId: result };
+  }
+
+  return { hash: submission.hash, pollId: null };
 };
 
 // ─── Public API ───────────────────────────────────────────────────────────────
