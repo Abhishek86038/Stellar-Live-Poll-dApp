@@ -25,8 +25,25 @@ const submitTx = async (walletAddress, buildTx) => {
     throw new Error(`Contract Error: ${sim?.error || "Simulation failed. Make sure you have enough balance/permissions."}`);
   }
 
-  let assembled = StellarSdk.rpc.assembleTransaction(tx, sim);
-  let xdr = assembled.toXDR ? assembled.toXDR() : assembled.transaction.toXDR();
+  // ─── ROBUST ASSEMBLE ───
+  let xdr;
+  try {
+    // Attempt 1: Standard SDK method
+    const assembled = StellarSdk.rpc.assembleTransaction(tx, sim);
+    if (assembled && assembled.toXDR) {
+      xdr = assembled.toXDR();
+    } else if (assembled && assembled.transaction && assembled.transaction.toXDR) {
+      xdr = assembled.transaction.toXDR();
+    } else {
+      throw new Error("Standard assembly failed");
+    }
+  } catch (e) {
+    // Attempt 2: Manual Assembly Fallback
+    console.warn("Manual assembly fallback triggered.");
+    tx.setSorobanData(sim.result.auth, sim.result.footprint, sim.result.instructions);
+    // Add simulation-derived fee if needed, or stick to provided fee
+    xdr = tx.build().toXDR();
+  }
 
   const { signedTxXdr } = await window.freighterApi.signTransaction(xdr, {
     network: 'TESTNET',
@@ -70,7 +87,7 @@ export const createPoll = async (walletAddress, question, options, cost) => {
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
         StellarSdk.nativeToScVal(question, { type: "string" }),
         StellarSdk.xdr.ScVal.scvVec(scOptions),
-        StellarSdk.nativeToScVal(Number(cost) * 10000000, { type: "i128" }) // Fixed: i128 with decimals
+        StellarSdk.nativeToScVal(Number(cost) * 10000000, { type: "i128" })
       ))
       .setTimeout(60).build()
   );
@@ -84,7 +101,7 @@ export const castAdvancedVote = async (walletAddress, pollId, optionIndex, amoun
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
         StellarSdk.nativeToScVal(Number(pollId), { type: "u32" }),
         StellarSdk.nativeToScVal(Number(optionIndex), { type: "u32" }),
-        StellarSdk.nativeToScVal(Number(amount) * 10000000, { type: "i128" }) // Fixed: i128 with decimals
+        StellarSdk.nativeToScVal(Number(amount) * 10000000, { type: "i128" })
       ))
       .setTimeout(60).build()
   );
@@ -142,7 +159,6 @@ export const getPoolReserves = async () => {
 
 export const swapTokens = async (walletAddress, amount, isXPollIn) => {
   const contract = new StellarSdk.Contract(POOL_ID);
-  // Important: Contract methods are usually snake_case
   const method = isXPollIn ? "swap_xpoll_for_native" : "swap_native_for_xpoll";
   
   return await submitTx(walletAddress, (src) =>
@@ -167,8 +183,6 @@ export const depositLiquidity = async (walletAddress, xpollAmount, nativeAmount)
       .setTimeout(60).build()
   );
 };
-
-// ─── Balance & Activity API ───────────────────────────────────────────────────
 
 export const getTokenBalance = async (walletAddress) => {
   try {
