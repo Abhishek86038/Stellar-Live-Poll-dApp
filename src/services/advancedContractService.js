@@ -46,7 +46,9 @@ export const swapTokens = async (walletAddress, amount, isXPollToXlm) => {
     const assembledTx = StellarSdk.rpc.assembleTransaction(tx, sim).build();
     const signed = await signTransaction(assembledTx.toXDR(), { network: "TESTNET", networkPassphrase: NETWORK_PASSPHRASE });
     
-    let xdr = typeof signed === 'string' ? signed : (signed.signedXdr || signed.result || "");
+    // Freighter new API returns { signedTxXdr }, older returns plain string
+    let xdr = typeof signed === 'string' ? signed : (signed.signedTxXdr || signed.signedXdr || signed.result || "");
+    if (!xdr) throw new Error("Freighter did not return a signed XDR. Please try again.");
     const submission = await server.sendTransaction(new StellarSdk.Transaction(xdr, NETWORK_PASSPHRASE));
     return submission.hash;
   } catch (e) {
@@ -138,7 +140,8 @@ export const createPoll = async (walletAddress, question, options, cost) => {
     const sim = await server.simulateTransaction(tx);
     const assembledTx = StellarSdk.rpc.assembleTransaction(tx, sim).build();
     const signed = await signTransaction(assembledTx.toXDR(), { network: "TESTNET", networkPassphrase: NETWORK_PASSPHRASE });
-    let xdr = typeof signed === 'string' ? signed : (signed.signedXdr || signed.result || "");
+    let xdr = typeof signed === 'string' ? signed : (signed.signedTxXdr || signed.signedXdr || signed.result || "");
+    if (!xdr) throw new Error("Freighter did not return a signed XDR. Please try again.");
     const submission = await server.sendTransaction(new StellarSdk.Transaction(xdr, NETWORK_PASSPHRASE));
     return submission.hash;
   } catch (e) { throw e; }
@@ -164,7 +167,8 @@ export const castAdvancedVote = async (walletAddress, pollId, optionIndex, amoun
     const sim = await server.simulateTransaction(tx);
     const assembledTx = StellarSdk.rpc.assembleTransaction(tx, sim).build();
     const signed = await signTransaction(assembledTx.toXDR(), { network: "TESTNET", networkPassphrase: NETWORK_PASSPHRASE });
-    let xdr = typeof signed === 'string' ? signed : (signed.signedXdr || signed.result || "");
+    let xdr = typeof signed === 'string' ? signed : (signed.signedTxXdr || signed.signedXdr || signed.result || "");
+    if (!xdr) throw new Error("Freighter did not return a signed XDR. Please try again.");
     const submission = await server.sendTransaction(new StellarSdk.Transaction(xdr, NETWORK_PASSPHRASE));
     return submission.hash;
   } catch (e) { throw e; }
