@@ -97,7 +97,7 @@ export const castAdvancedVote = async (walletAddress, pollId, optionIndex, amoun
   const contract = new StellarSdk.Contract(POLL_ID);
   return await submitTx(walletAddress, (src) =>
     new StellarSdk.TransactionBuilder(src, { fee: "10000", networkPassphrase: NETWORK_PASSPHRASE })
-      .addOperation(contract.call("cast_vote",
+      .addOperation(contract.call("vote",
         new StellarSdk.Address(getAddr(walletAddress)).toScVal(),
         StellarSdk.nativeToScVal(Number(pollId), { type: "u32" }),
         StellarSdk.nativeToScVal(Number(optionIndex), { type: "u32" }),
