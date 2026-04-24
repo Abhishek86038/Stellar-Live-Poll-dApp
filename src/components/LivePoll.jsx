@@ -91,11 +91,29 @@ const LivePoll = ({ walletAddress }) => {
   const addOption = () => setNewPoll({ ...newPoll, options: [...newPoll.options, ''] });
 
   return (
-    <div className="live-poll-card glass-panel">
-      <div className="poll-tabs">
-        <button className={activeTab === 'vote' ? 'active' : ''} onClick={() => setActiveTab('vote')}>Vote</button>
-        <button className={activeTab === 'create' ? 'active' : ''} onClick={() => setActiveTab('create')}>Create Poll</button>
-        <button className={activeTab === 'manage' ? 'active' : ''} onClick={() => setActiveTab('manage')}>Manage</button>
+    <div className="live-poll-card glass-panel" id="main-poll-container">
+      <div className="poll-tabs-force-display">
+        <button 
+          id="tab-vote"
+          className={activeTab === 'vote' ? 'active' : ''} 
+          onClick={() => setActiveTab('vote')}
+        >
+          🗳️ Vote
+        </button>
+        <button 
+          id="tab-create"
+          className={activeTab === 'create' ? 'active' : ''} 
+          onClick={() => setActiveTab('create')}
+        >
+          ➕ Create
+        </button>
+        <button 
+          id="tab-manage"
+          className={activeTab === 'manage' ? 'active' : ''} 
+          onClick={() => setActiveTab('manage')}
+        >
+          ⚙️ Manage
+        </button>
       </div>
 
       {status.msg && <div className={`status-banner ${status.type}`}>{status.msg}</div>}
