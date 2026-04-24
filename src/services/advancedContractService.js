@@ -119,3 +119,20 @@ export const getAdvancedPollResults = async (pollId) => {
   } catch (e) {}
   return null;
 };
+
+export const getTokenBalance = async (walletAddress) => {
+  try {
+    const TOKEN_ID = process.env.REACT_APP_XPOLL_TOKEN_CONTRACT_ID || "CAOAPSP35AQ6KRWVKBDVJLNYO3TOSUF7AI2Q6YIQY2DMI2B7YD4TS4LL";
+    const contract = new StellarSdk.Contract(TOKEN_ID);
+    const dummy = new StellarSdk.Account("GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF", "0");
+    const tx = new StellarSdk.TransactionBuilder(dummy, { fee: "100", networkPassphrase: NETWORK_PASSPHRASE })
+      .addOperation(contract.call("balance", new StellarSdk.Address(getAddr(walletAddress)).toScVal()))
+      .setTimeout(30).build();
+
+    const sim = await server.simulateTransaction(tx);
+    if (sim.result && sim.result.retval) {
+      return Number(StellarSdk.scValToNative(sim.result.retval)) / 10000000;
+    }
+  } catch (e) {}
+  return 0;
+};
