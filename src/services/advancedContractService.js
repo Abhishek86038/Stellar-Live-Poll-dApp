@@ -3,11 +3,10 @@ import * as StellarSdk from "@stellar/stellar-sdk";
 const RPC_URL = "https://soroban-testnet.stellar.org";
 const NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
 const POLL_ID = process.env.REACT_APP_ADVANCED_POLL_CONTRACT_ID || "CCIKQ7UIWMTBEOLT734B6FMQI5JSXK7HBJPAPSDPLMWP2UHJELV2ZTOX";
-const POOL_ID = process.env.REACT_APP_LIQUIDITY_POOL_CONTRACT_ID || "CAOAPSP35AQ6KRWVKBDVJLNYO3TOSUF7AI2Q6YIQY2DMI2B7YD4TS4LL"; // Using Token ID as fallback if needed, but should be its own ID
+const POOL_ID = process.env.REACT_APP_LIQUIDITY_POOL_CONTRACT_ID || "CAOAPSP35AQ6KRWVKBDVJLNYO3TOSUF7AI2Q6YIQY2DMI2B7YD4TS4LL";
 
 const server = new StellarSdk.rpc.Server(RPC_URL);
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 const getAddr = (walletAddress) => {
   if (typeof walletAddress === 'object' && walletAddress?.address) return walletAddress.address;
   return walletAddress;
@@ -20,13 +19,23 @@ const submitTx = async (walletAddress, buildTx) => {
 
   const sim = await server.simulateTransaction(tx);
   if (!sim || StellarSdk.rpc.Api.isSimulationError(sim)) {
-    const msg = sim?.error || "Simulation failed. Check balance or permissions.";
-    throw new Error(`Contract Error: ${msg}`);
+    throw new Error(`Contract Error: ${sim?.error || "Simulation failed"}`);
   }
 
-  const assembled = StellarSdk.rpc.assembleTransaction(tx, sim);
-  const xdr = assembled.toXDR();
+  // ─── SAFE ASSEMBLE ───
+  let assembled = StellarSdk.rpc.assembleTransaction(tx, sim);
   
+  // Try different ways to get XDR (SDK version compatibility)
+  let xdr;
+  if (assembled.toXDR) {
+    xdr = assembled.toXDR();
+  } else if (assembled.transaction && assembled.transaction.toXDR) {
+    xdr = assembled.transaction.toXDR();
+  } else {
+    // Fallback: manually prepare if assembly fails to return transaction
+    throw new Error("SDK Error: Could not assemble transaction XDR.");
+  }
+
   const { signedTxXdr } = await window.freighterApi.signTransaction(xdr, {
     network: 'TESTNET',
     networkPassphrase: NETWORK_PASSPHRASE
@@ -117,8 +126,6 @@ export const getAdvancedPollResults = async (pollId) => {
   return null;
 };
 
-// ─── Swap & Liquidity API ─────────────────────────────────────────────────────
-
 export const getPoolReserves = async () => {
   try {
     const contract = new StellarSdk.Contract(POOL_ID);
@@ -165,8 +172,6 @@ export const depositLiquidity = async (walletAddress, xpollAmount, nativeAmount)
       .setTimeout(60).build()
   );
 };
-
-// ─── Balance & Activity API ───────────────────────────────────────────────────
 
 export const getTokenBalance = async (walletAddress) => {
   try {
