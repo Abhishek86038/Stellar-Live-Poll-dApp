@@ -9,6 +9,7 @@ const POOL_ID = process.env.REACT_APP_LIQUIDITY_POOL_CONTRACT_ID || "CCJLAH3Y7ZY
 const TOKEN_ID = process.env.REACT_APP_XPOLL_TOKEN_CONTRACT_ID || "CAOAPSP35AQ6KRWVKBDVJLNYO3TOSUF7AI2Q6YIQY2DMI2B7YD4TS4LL";
 
 const server = new StellarSdk.rpc.Server(RPC_URL);
+console.log("Stellar Service v1.0.5 - Ready");
 
 const getAddr = (walletAddress) => {
   if (typeof walletAddress === 'object' && walletAddress?.address) return walletAddress.address;
