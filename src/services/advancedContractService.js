@@ -231,8 +231,8 @@ export const createPoll = async (walletAddress, question, options, cost) => {
   })
     .addOperation(contract.call("create_poll", 
       new StellarSdk.Address(addr).toScVal(),
-      StellarSdk.nativeToScVal(question, { type: "string" }),
-      StellarSdk.nativeToScVal(options, { type: "vec" }),
+      StellarSdk.nativeToScVal(question),
+      StellarSdk.nativeToScVal(options),
       StellarSdk.nativeToScVal(costBigInt, { type: "i128" })
     ))
     .setTimeout(60)
