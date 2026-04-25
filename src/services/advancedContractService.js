@@ -243,7 +243,14 @@ export const getVotesCastCount = async (walletAddress) => {
     // Filter events where topic[0] is "VoteCast" and topic[1] is the user's address
     const myVotes = events.events.filter(e => {
       try {
-        const topics = e.topic.map(t => StellarSdk.scValToNative(StellarSdk.xdr.ScVal.fromXDR(t, "base64")));
+        const topics = e.topic.map(t => {
+          // Robust parsing: try base64 first, then direct
+          try {
+            return StellarSdk.scValToNative(StellarSdk.xdr.ScVal.fromXDR(t, "base64"));
+          } catch (inner) {
+            return StellarSdk.scValToNative(t);
+          }
+        });
         return topics[0] === "VoteCast" && topics[1] === addr;
       } catch (err) { return false; }
     });

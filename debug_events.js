@@ -22,14 +22,16 @@ async function debugEvents() {
         
         events.events.forEach((e, i) => {
             console.log(`\n--- Event ${i+1} ---`);
-            console.log(`Topics: ${e.topic.map(t => t).join(', ')}`);
-            // Try to parse topics
-            try {
-                const parsedTopics = e.topic.map(t => scValToNative(xdr.ScVal.fromXDR(t, "base64")));
-                console.log(`Parsed Topics:`, parsedTopics);
-            } catch (err) {
-                console.log(`Could not parse topics:`, err.message);
-            }
+            // Try to parse topics more robustly
+            const parsedTopics = e.topic.map(t => {
+                try {
+                    return scValToNative(xdr.ScVal.fromXDR(t, "base64"));
+                } catch (err) {
+                    return "PARSE_ERROR";
+                }
+            });
+            console.log(`Parsed Topics:`, JSON.stringify(parsedTopics));
+            console.log(`Raw Topic[0] (base64):`, e.topic[0]);
         });
 
     } catch (e) {
