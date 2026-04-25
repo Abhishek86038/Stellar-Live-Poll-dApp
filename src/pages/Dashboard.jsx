@@ -24,7 +24,12 @@ const Dashboard = ({ walletAddress }) => {
         advancedService.getVotesCastCount(walletAddress)
       ]);
       setBalance(xpoll);
-      setStats(prev => ({ ...prev, xlmBalance: xlm, votesCast: votes }));
+      setStats(prev => ({ 
+        ...prev, 
+        xlmBalance: xlm, 
+        votesCast: votes,
+        rewardsEarned: votes * 10 // Each vote gives 10 XP
+      }));
       setActivity(recent);
 
       // Check for first 20 polls now that it's safe
