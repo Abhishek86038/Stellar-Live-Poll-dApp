@@ -248,14 +248,23 @@ export const getVotesCastCount = async (walletAddress) => {
     const myVotes = events.events.filter(e => {
       try {
         const topics = e.topic.map(t => {
-          // Robust parsing: try base64 first, then direct
           try {
-            return StellarSdk.scValToNative(StellarSdk.xdr.ScVal.fromXDR(t, "base64"));
-          } catch (inner) {
+            // Fallback 1: Try base64
+            if (typeof t === 'string') return StellarSdk.scValToNative(StellarSdk.xdr.ScVal.fromXDR(t, "base64"));
+            // Fallback 2: Try direct scValToNative (if already an object)
             return StellarSdk.scValToNative(t);
+          } catch (e) {
+            // Fallback 3: Manual buffer check for symbols (last resort)
+            if (t && t._value && Buffer.isBuffer(t._value)) return t._value.toString();
+            return null;
           }
         });
-        return topics[0] === "VoteCast" && topics[1] === addr;
+
+        // Case-insensitive match for "VoteCast"
+        const isVote = topics[0] && topics[0].toString().toLowerCase() === "votecast";
+        const isMe   = topics[1] && topics[1].toString() === addr;
+        
+        return isVote && isMe;
       } catch (err) { return false; }
     });
 
