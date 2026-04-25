@@ -17,18 +17,15 @@ const Dashboard = ({ walletAddress }) => {
     if (!walletAddress) return;
     setLoading(true);
     try {
-      const [xpoll, xlm, recent, votes] = await Promise.all([
+      const [xpoll, xlm, recent] = await Promise.all([
         advancedService.getTokenBalance(walletAddress),
         advancedService.getNativeBalance(walletAddress),
-        advancedService.getRecentActivity(walletAddress),
-        advancedService.getVotesCastCount(walletAddress)
+        advancedService.getRecentActivity(walletAddress)
       ]);
       setBalance(xpoll);
       setStats(prev => ({ 
         ...prev, 
-        xlmBalance: xlm, 
-        votesCast: votes,
-        rewardsEarned: votes * 10 // Each vote gives 10 XP
+        xlmBalance: xlm
       }));
       setActivity(recent);
 
