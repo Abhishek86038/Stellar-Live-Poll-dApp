@@ -226,23 +226,29 @@ export const getVotesCastCount = async (walletAddress) => {
   if (!addr || !POLL_ID) return 0;
   
   try {
-    // Scan events for VoteCast from this contract
+    // Get all events for this contract and filter in JS for reliability
     const events = await server.getEvents({
-      startLedger: 0,
+      startLedger: 1, // Will be auto-corrected by server if needed
       filters: [
         {
           type: "contract",
-          contractIds: [POLL_ID],
-          topics: [
-            [StellarSdk.xdr.ScVal.scvSymbol("VoteCast").toXDR("base64")],
-            [new StellarSdk.Address(addr).toScVal().toXDR("base64")]
-          ]
+          contractIds: [POLL_ID]
         }
       ],
       limit: 100
     });
     
-    return events.events?.length || 0;
+    if (!events.events) return 0;
+
+    // Filter events where topic[0] is "VoteCast" and topic[1] is the user's address
+    const myVotes = events.events.filter(e => {
+      try {
+        const topics = e.topic.map(t => StellarSdk.scValToNative(StellarSdk.xdr.ScVal.fromXDR(t, "base64")));
+        return topics[0] === "VoteCast" && topics[1] === addr;
+      } catch (err) { return false; }
+    });
+
+    return myVotes.length;
   } catch (e) {
     console.error("Event fetch error:", e);
     return 0;
