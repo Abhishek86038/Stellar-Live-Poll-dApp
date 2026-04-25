@@ -7,15 +7,18 @@ const TokenSwap = ({ walletAddress }) => {
   const [isXPollIn, setIsXPollIn] = useState(true);
   const [loading, setLoading] = useState(false);
   const [balances, setBalances] = useState({ xlm: '0.00', xpoll: '0.00' });
+  const [reserves, setReserves] = useState({ xpoll: 0, native: 0 });
 
   const fetchBalances = useCallback(async () => {
     if (!walletAddress) return;
     try {
-      const [xpollBal, xlmBal] = await Promise.all([
+      const [xpollBal, xlmBal, pool] = await Promise.all([
         advancedService.getTokenBalance(walletAddress),
-        advancedService.getNativeBalance(walletAddress)
+        advancedService.getNativeBalance(walletAddress),
+        advancedService.getPoolReserves()
       ]);
       setBalances({ xpoll: xpollBal, xlm: xlmBal });
+      setReserves({ xpoll: Number(pool.xpoll), native: Number(pool.native) });
     } catch (err) {
       console.error("Balance fetch error:", err);
     }
@@ -25,7 +28,12 @@ const TokenSwap = ({ walletAddress }) => {
     fetchBalances();
   }, [fetchBalances]);
 
-  const exchangeRate = isXPollIn ? 0.25 : 4; // 1 XPOLL = 0.25 XLM
+  // Dynamic Exchange Rate Calculation
+  // 1 XLM = (XPOLL Reserves / XLM Reserves) XPOLL
+  const xlmToXpollRate = reserves.native > 0 ? (reserves.xpoll / reserves.native) : 4;
+  const xpollToXlmRate = reserves.xpoll > 0 ? (reserves.native / reserves.xpoll) : 0.25;
+  
+  const exchangeRate = isXPollIn ? xpollToXlmRate : xlmToXpollRate;
 
   const handleSwap = async (e) => {
     e.preventDefault();
@@ -51,7 +59,9 @@ const TokenSwap = ({ walletAddress }) => {
       <div className="glass-panel swap-card">
         <div className="swap-header">
           <h2>Token Swap</h2>
-          <span className="rate-badge">1 XLM = 4 XPOLL</span>
+          <span className="rate-badge">
+            1 XLM = {xlmToXpollRate.toFixed(2)} XPOLL
+          </span>
         </div>
 
         <form onSubmit={handleSwap} className="swap-form">
@@ -89,7 +99,7 @@ const TokenSwap = ({ walletAddress }) => {
             <div className="input-row">
               <input 
                 type="text" 
-                value={fromAmount ? (Number(fromAmount) * exchangeRate).toFixed(2) : ''} 
+                value={fromAmount ? (Number(fromAmount) * exchangeRate).toFixed(4) : ''} 
                 readOnly
                 placeholder="0.0"
               />
