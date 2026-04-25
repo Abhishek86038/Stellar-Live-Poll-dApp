@@ -120,7 +120,7 @@ const LivePoll = ({ walletAddress }) => {
                       onChange={() => setSelectedOption(i)} 
                     />
                     <span className="opt-text">{opt}</span>
-                    <span className="opt-votes">{Number(pollData.votes[i])} votes</span>
+                    <span className="opt-votes">{Math.floor(Number(pollData.votes[i]) / 10000000)} votes</span>
                   </label>
                 ))}
               </div>
