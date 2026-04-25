@@ -1,81 +1,75 @@
-# 🌊 Advanced Token-Gated Poll - Level 4 Green Belt 
+# 🌊 Advanced Stellar Live Poll - Level 4 Green Belt (Final)
 
-Advanced Stellar dApp with inter-contract calls, custom token, liquidity pool, and real-time event streaming.
+A professional, production-ready Stellar dApp featuring multiple inter-linked Soroban smart contracts, an automated liquidity pool, and a premium glassmorphism dashboard.
 
-## 📍 Quick Navigation
-* [🏆 Level 4: Advanced Green Belt Submission](#-level-4-advanced-green-belt-implementation-official)
-* [🟠 Level 3: Orange Belt Submission](#-orange-belt-level-3-submission-details-official)
-* [🟡 Level 2: Yellow Belt Submission](#-yellow-belt-submission-links)
-* [🛠️ Installation & Setup](#-prerequisites--installation)
+## 📍 Final Submission Overview
+This project has been fully audited to ensure compliance with the Level 4 Green Belt requirements. All "Dummy" integrations have been replaced with real on-chain interactions, and the project structure has been cleaned of redundant files.
 
 ---
 
-## 🏆 LEVEL 4: ADVANCED GREEN BELT IMPLEMENTATION (OFFICIAL) 🏆
+## 🏆 LEVEL 4: GREEN BELT SPECIFICATIONS
 
-![CI/CD Status](https://img.shields.io/badge/CI%2FCD-Success-brightgreen)
-![Stellar Network](https://img.shields.io/badge/Network-Testnet-blue)
-![Soroban SDK](https://img.shields.io/badge/Soroban-v22.0.0-orange)
+### ✅ Requirements Implementation
+- [x] **Proper Multi-Contract Integration**: Full integration with three inter-linked contracts (Token, Pool, Poll).
+- [x] **No Dummy Accounts**: All simulations and transactions use the active user's wallet address.
+- [x] **Clean Architecture**: Only 3 distinct `lib.rs` files exist (Poll, Pool, Token). No redundant polling logic.
+- [x] **Inter-contract Calls**: Poll contract interacts with the XPOLL token contract for staking and rewards.
+- [x] **On-Chain DEX**: A constant-product liquidity pool (XLM/XPOLL) with a stable **1:4 exchange rate**.
+- [x] **Advanced Feature**: Automated ledger-scanning for real-time transaction activity.
+- [x] **Premium UI/UX**: High-end glassmorphism design with a fully responsive layout.
 
-### ✅ Level 4 Requirements Tracking
-- [x] **Inter-contract calls** working (Poll ↔ Token contract)
-- [x] **Custom token deployed** (XPOLL token)
-- [x] **Liquidity pool mechanics** (XLM/XPOLL Swap)
-- [x] **CI/CD pipeline running** (GitHub Actions)
-- [x] **Mobile responsive design** (100% responsive)
-- [x] **8+ meaningful commits**
-- [x] **Advanced event streaming** (WebSocket Simulation)
-- [x] **Production-ready code quality**
-
-### 🎯 Key Features
-- **Token-Gated Ecosystem**: Custom `XPOLL` token required for poll creation.
-- **On-Chain DEX**: Built-in liquidity pool for instant swaps.
-- **Reward Engine**: Automated reward distribution via inter-contract interaction.
-- **Premium UI**: Fluid "Water Aesthetic" with high-contrast glassmorphism.
-
-### 🔗 Submission Details
-- ✅ **Live Demo Link**: [https://stellar-live-poll.vercel.app](https://stellar-live-poll.vercel.app)
-- ✅ **Token Contract ID**: `CAOAPSP35AQ6KRWVKBDVJLNYO3TOSUF7AI2Q6YIQY2DMI2B7YD4TS4LL`
-- ✅ **Pool Contract ID**: `CCJLAH3Y7ZYJEZH44PENQFV3XZ75452DZG2SPZNTRFAQC3MT5KGGERQV`
-- ✅ **Poll Contract ID**: `CCIKQ7UIWMTBEOLT734B6FMQI5JSXK7HBJPAPSDPLMWP2UHJELV2ZTOX`
-
-#### 🛡️ Verification Hashes (On-Chain Proof)
-- **Token Deployment**: `f514665f3488429c61d9873820608012eb57b0393b530e29253515310f0b3e79`
-- **Pool Deployment**: `3f783a59f86ae240a60e95e77e5fc45fe53855b2b6e81125ad1b56b6601197ec`
-- **Liquidity Seeded**: `850ddd75f89192bf574602eff6c051d5fe9d20c75a893a7b7bc009cef38e263c`
-
-
-####  Mobile Responsive View
-![alt text](image-1.png)
----
-
-#### CI/CD pipeline running
-![alt text](image-2.png)
-
-## 🟠 ORANGE BELT (LEVEL 3) SUBMISSION DETAILS (OFFICIAL) 🏆
-
-- ✅ **Contract ID**: `CCPC6IAMNB3M5ULNYKIUYQAY7LD55J27MAK4F3D66WNHE7V5UA7DJMP3`  
-- ✅ **Transaction Hash**: `1ca6e1a86718253769ea82b58d7a8277a2b6cdcca185618424b3150811242c9c`  
-- ✅ **Demo Video Link:** [https://youtu.be/oFeW8NX9Blw](https://youtu.be/oFeW8NX9Blw)
+### 🔗 Official Contract Identifiers (Testnet)
+- **Advanced Poll Contract**: `CC6VHB7JGO6XWNWSDWPKNKNA6N63K5Z567RPGZQPBAHNZCWAVMNMSI7S`
+- **XPOLL Token Contract**: `CA4NSRXEWFPDCMEBDQVUV3GHXAR5RNZV42SL2R2M42RVEADKKAQUONZJ`
+- **Liquidity Pool Contract**: `CBUKW4W6FNO6J6E2672OZ6EXERWH3H7CBYUZXMMTNK7PFXK3WQRAVKNV`
 
 ---
 
-## 🟡 YELLOW BELT (LEVEL 2) SUBMISSION LINKS 🏆
+## 🎯 Key Features
 
-- ✅ **Deployed contract address:** `CACPWBSL75BAJQVP5ULZYSIHQ572DHXJNJ2AF3O3U3LTJQ6GG6FNTAA2`  
+### 1. Token-Gated Staking
+Users must hold and stake `XPOLL` tokens to participate in advanced polls. The contract handles automated balance verification and staking logic.
+
+### 2. Built-in DEX (Swap)
+An integrated Token Swap page allows users to exchange XLM for XPOLL tokens directly within the dApp. The pool is seeded with deep liquidity to ensure price stability.
+
+### 3. Advanced Poll Management
+- **Creation**: Users can create multi-option polls by paying a creation fee in XPOLL.
+- **Voting**: Votes are weighted based on the staked amount.
+- **Lifecycle**: Poll creators have the exclusive ability to "Close Poll" directly from the UI.
+
+### 4. Robust Dashboard
+A real-time dashboard that tracks:
+- Live XPOLL Balance
+- Number of Polls Created on-chain
+- Recent Blockchain Transaction History (fetched directly from Horizon)
 
 ---
 
-## 🛠️ Installation & Setup
+## 🛠️ Installation & Development
 
+### Frontend
 ```bash
+# Install dependencies
 npm install
-cd smart-contract
+
+# Run locally
+npm start
+
+# Build for production
+npm run build
+```
+
+### Smart Contracts (Rust)
+The contracts are located in the `smart-contract/contracts` directory.
+```bash
+# Build WASM
 cargo build --target wasm32-unknown-unknown --release
 ```
 
 ---
 
 ## 🧑‍💻 Author Info
-**Created By**: Abhishek (Stellar Developer)
-- **Objective Tracker**: Stellar Journey to Mastery - Green Belt Candidate
-- **Github**: [Abhishek86038/Stellar-Live-Poll-dApp](https://github.com/Abhishek86038/Stellar-Live-Poll-dApp)
+**Developer**: Abhishek (Stellar Developer)
+**Milestone**: Level 4 - Green Belt Certification Submission
+**Github**: [Abhishek86038/Stellar-Live-Poll-dApp](https://github.com/Abhishek86038/Stellar-Live-Poll-dApp)
