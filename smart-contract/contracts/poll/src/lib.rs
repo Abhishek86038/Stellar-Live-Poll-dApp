@@ -69,8 +69,8 @@ impl AdvancedPoll {
         env.storage().instance().set(&DataKey::PollCount, &count);
 
         env.events().publish(
-            (Symbol::new(&env, "PollCreated"), count, creator, cost),
-            env.ledger().timestamp(),
+            (Symbol::new(&env, "PollCreated"), count, creator), // Topics (max 4)
+            cost, // Data
         );
 
         count
@@ -92,15 +92,15 @@ impl AdvancedPoll {
 
         let mut votes = poll.votes;
         let current_votes = votes.get(option_index).unwrap();
-        votes.set(option_index, current_votes + amount);  // ✅ Adds weighted amount
+        votes.set(option_index, current_votes + (amount as u32)); // ✅ Adds weighted amount
         poll.votes = votes;
         poll.total_reward_pool += amount;
 
         env.storage().persistent().set(&DataKey::Poll(poll_id), &poll);
 
         env.events().publish(
-            (Symbol::new(&env, "VoteCast"), poll_id, voter, option_index, amount),
-            env.ledger().timestamp(),
+            (Symbol::new(&env, "VoteCast"), poll_id, voter), // Topics (max 4)
+            (option_index, amount), // Data
         );
 
         true
