@@ -221,6 +221,34 @@ export const castAdvancedVote = async (walletAddress, pollId, optionIndex, amoun
   );
 };
 
+export const getVotesCastCount = async (walletAddress) => {
+  const addr = getAddr(walletAddress);
+  if (!addr || !POLL_ID) return 0;
+  
+  try {
+    // Scan events for VoteCast from this contract
+    const events = await server.getEvents({
+      startLedger: 0,
+      filters: [
+        {
+          type: "contract",
+          contractIds: [POLL_ID],
+          topics: [
+            [StellarSdk.xdr.ScVal.scvSymbol("VoteCast").toXDR("base64")],
+            [new StellarSdk.Address(addr).toScVal().toXDR("base64")]
+          ]
+        }
+      ],
+      limit: 100
+    });
+    
+    return events.events?.length || 0;
+  } catch (e) {
+    console.error("Event fetch error:", e);
+    return 0;
+  }
+};
+
 export const closePoll = async (walletAddress, pollId) => {
     if (!POLL_ID) throw new Error("Poll contract not configured.");
     const addr = getAddr(walletAddress);

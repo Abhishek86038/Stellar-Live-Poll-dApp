@@ -17,13 +17,14 @@ const Dashboard = ({ walletAddress }) => {
     if (!walletAddress) return;
     setLoading(true);
     try {
-      const [xpoll, xlm, recent] = await Promise.all([
+      const [xpoll, xlm, recent, votes] = await Promise.all([
         advancedService.getTokenBalance(walletAddress),
         advancedService.getNativeBalance(walletAddress),
-        advancedService.getRecentActivity(walletAddress)
+        advancedService.getRecentActivity(walletAddress),
+        advancedService.getVotesCastCount(walletAddress)
       ]);
       setBalance(xpoll);
-      setStats(prev => ({ ...prev, xlmBalance: xlm }));
+      setStats(prev => ({ ...prev, xlmBalance: xlm, votesCast: votes }));
       setActivity(recent);
 
       // Check for first 20 polls now that it's safe
