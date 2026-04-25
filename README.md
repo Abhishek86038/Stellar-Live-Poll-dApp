@@ -1,75 +1,47 @@
-# 🌊 Advanced Stellar Live Poll - Level 4 Green Belt (Final)
+# 🌊 Advanced Stellar Live Poll - Level 4 Green Belt (Final Submission)
 
-A professional, production-ready Stellar dApp featuring multiple inter-linked Soroban smart contracts, an automated liquidity pool, and a premium glassmorphism dashboard.
+A professional, production-ready Stellar dApp featuring three inter-linked Soroban smart contracts, a custom XPOLL token economy, and a premium glassmorphism dashboard.
 
-## 📍 Final Submission Overview
-This project has been fully audited to ensure compliance with the Level 4 Green Belt requirements. All "Dummy" integrations have been replaced with real on-chain interactions, and the project structure has been cleaned of redundant files.
+## 🏆 LEVEL 4: GREEN BELT SPECIFICATIONS (FINAL)
 
----
+This project is fully integrated with the Stellar Testnet. All dummy logic and accounts have been removed, and the frontend communicates directly with live Soroban contracts.
 
-## 🏆 LEVEL 4: GREEN BELT SPECIFICATIONS
+### ✅ Verified Requirements
+- [x] **Multi-Contract Integration**: Linked Token, Liquidity Pool, and Advanced Poll contracts.
+- [x] **Real-time Account Integration**: Simulations and transactions use the active user's wallet address.
+- [x] **Clean Repository**: Only 3 distinct smart contract `lib.rs` files are used.
+- [x] **DEX Mechanics**: Automated XLM/XPOLL swap with live reserve fetching.
+- [x] **Full Functionality**: Every contract function (Vote, Create, Close, Swap) is integrated into the UI.
 
-### ✅ Requirements Implementation
-- [x] **Proper Multi-Contract Integration**: Full integration with three inter-linked contracts (Token, Pool, Poll).
-- [x] **No Dummy Accounts**: All simulations and transactions use the active user's wallet address.
-- [x] **Clean Architecture**: Only 3 distinct `lib.rs` files exist (Poll, Pool, Token). No redundant polling logic.
-- [x] **Inter-contract Calls**: Poll contract interacts with the XPOLL token contract for staking and rewards.
-- [x] **On-Chain DEX**: A constant-product liquidity pool (XLM/XPOLL) with a stable **1:4 exchange rate**.
-- [x] **Advanced Feature**: Automated ledger-scanning for real-time transaction activity.
-- [x] **Premium UI/UX**: High-end glassmorphism design with a fully responsive layout.
-
-### 🔗 Official Contract Identifiers (Testnet)
+### 🔗 Official Contract Identifiers (Live Testnet)
 - **Advanced Poll Contract**: `CC6VHB7JGO6XWNWSDWPKNKNA6N63K5Z567RPGZQPBAHNZCWAVMNMSI7S`
 - **XPOLL Token Contract**: `CA4NSRXEWFPDCMEBDQVUV3GHXAR5RNZV42SL2R2M42RVEADKKAQUONZJ`
 - **Liquidity Pool Contract**: `CBUKW4W6FNO6J6E2672OZ6EXERWH3H7CBYUZXMMTNK7PFXK3WQRAVKNV`
+
+### 🛡️ On-Chain Verification Hashes
+These hashes correspond to recent live activity on the Testnet for the user account:
+- **Latest Transaction**: `eb04d124fc4ea435b5d2190c68c6be890f05a9b8f594a4f986ee2ef0c7b2d52e`
+- **Contract Interaction**: `d4143312ac4fa361aec3de0fc00254102f8a183f86630673f19cfc65342f4b6c`
+- **System Activity**: `56658f42e7836b4fcc189e5bd0ad73456dc0edad1bb846f1e8ec850f003e925e`
 
 ---
 
 ## 🎯 Key Features
 
-### 1. Token-Gated Staking
-Users must hold and stake `XPOLL` tokens to participate in advanced polls. The contract handles automated balance verification and staking logic.
+### 1. Advanced Token-Gated Voting
+Users interact with the `Advanced Poll` contract. Voting requires staking `XPOLL` tokens, which are handled via inter-contract calls to the `XPOLL Token` contract.
 
 ### 2. Built-in DEX (Swap)
-An integrated Token Swap page allows users to exchange XLM for XPOLL tokens directly within the dApp. The pool is seeded with deep liquidity to ensure price stability.
+The `Liquidity Pool` contract allows users to swap XLM for XPOLL tokens. The frontend fetches live reserves to calculate real-time exchange rates (Target: 1 XLM = 4 XPOLL).
 
-### 3. Advanced Poll Management
-- **Creation**: Users can create multi-option polls by paying a creation fee in XPOLL.
-- **Voting**: Votes are weighted based on the staked amount.
-- **Lifecycle**: Poll creators have the exclusive ability to "Close Poll" directly from the UI.
-
-### 4. Robust Dashboard
-A real-time dashboard that tracks:
-- Live XPOLL Balance
-- Number of Polls Created on-chain
-- Recent Blockchain Transaction History (fetched directly from Horizon)
-
----
-
-## 🛠️ Installation & Development
-
-### Frontend
-```bash
-# Install dependencies
-npm install
-
-# Run locally
-npm start
-
-# Build for production
-npm run build
-```
-
-### Smart Contracts (Rust)
-The contracts are located in the `smart-contract/contracts` directory.
-```bash
-# Build WASM
-cargo build --target wasm32-unknown-unknown --release
-```
+### 3. Professional Dashboard
+- Real-time balance fetching for both native XLM and custom XPOLL tokens.
+- Dynamic "Polls Created" counter using on-chain simulation.
+- Verified transaction history fetched directly from the Horizon API.
 
 ---
 
 ## 🧑‍💻 Author Info
 **Developer**: Abhishek (Stellar Developer)
-**Milestone**: Level 4 - Green Belt Certification Submission
+**Project**: Live Poll dApp - Green Belt Candidate
 **Github**: [Abhishek86038/Stellar-Live-Poll-dApp](https://github.com/Abhishek86038/Stellar-Live-Poll-dApp)
