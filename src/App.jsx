@@ -6,7 +6,6 @@ import Dashboard from './pages/Dashboard';
 import TokenSwap from './pages/TokenSwap';
 import LivePoll from './components/LivePoll';
 import LiquidityPool from './pages/LiquidityPool';
-import EventStream from './components/EventStream';
 import ToastNotification from './components/ToastNotification';
 import './styles/App.css';
 
