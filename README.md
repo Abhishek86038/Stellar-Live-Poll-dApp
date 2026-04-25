@@ -43,14 +43,13 @@ Advanced Stellar dApp with inter-contract calls, custom token, liquidity pool, a
 - **Pool Deployment**: `3f783a59f86ae240a60e95e77e5fc45fe53855b2b6e81125ad1b56b6601197ec`
 - **Liquidity Seeded**: `850ddd75f89192bf574602eff6c051d5fe9d20c75a893a7b7bc009cef38e263c`
 
-### CI/CD pipeline running 
-<img width="1918" height="930" alt="image" src="https://github.com/user-attachments/assets/d83bc83f-d3ac-4736-b355-117d2aa4f18d" />
 
-### Mobile Responsive View
-<img width="683" height="932" alt="image" src="https://github.com/user-attachments/assets/d122ea84-c713-487f-966c-7b544cf48a8e" />
-
-
+####  Mobile Responsive View
+![alt text](image-1.png)
 ---
+
+#### CI/CD pipeline running
+![alt text](image-2.png)
 
 ## 🟠 ORANGE BELT (LEVEL 3) SUBMISSION DETAILS (OFFICIAL) 🏆
 
