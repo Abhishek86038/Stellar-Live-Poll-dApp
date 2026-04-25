@@ -1,3 +1,4 @@
+/* global BigInt */
 import React, { useState, useEffect } from 'react';
 import './LivePoll.css';
 import * as advancedService from '../services/advancedContractService';
