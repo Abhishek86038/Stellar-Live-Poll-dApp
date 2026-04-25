@@ -1,6 +1,6 @@
 const { rpc, Networks, Contract, scValToNative, Account, TransactionBuilder, nativeToScVal } = require("@stellar/stellar-sdk");
 
-const POLL_ID = "CCIKQ7UIWMTBEOLT734B6FMQI5JSXK7HBJPAPSDPLMWP2UHJELV2ZTOX";
+const POLL_ID = "CC6VHB7JGO6XWNWSDWPKNKNA6N63K5Z567RPGZQPBAHNZCWAVMNMSI7S";
 const RPC_URL = "https://soroban-testnet.stellar.org";
 
 async function inspectPoll(id) {

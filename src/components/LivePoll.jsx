@@ -116,8 +116,12 @@ const LivePoll = ({ walletAddress }) => {
               <h3 className="poll-question">{pollData.question}</h3>
               <div className="options-grid">
                 {pollData.options.map((opt, i) => {
-                  const totalVotes = pollData.votes.reduce((a, b) => Number(a) + Number(b), 0);
-                  const optionVotes = Number(pollData.votes[i]);
+                  // Ensure we handle BigInt or String safely
+                  const votesRaw = pollData.votes[i] ? BigInt(pollData.votes[i].toString()) : 0n;
+                  const totalVotesRaw = pollData.votes.reduce((a, b) => BigInt(a.toString()) + BigInt(b.toString()), 0n);
+                  
+                  const optionVotes = Number(votesRaw);
+                  const totalVotes = Number(totalVotesRaw);
                   const percent = totalVotes > 0 ? Math.round((optionVotes / totalVotes) * 100) : 0;
                   
                   return (
