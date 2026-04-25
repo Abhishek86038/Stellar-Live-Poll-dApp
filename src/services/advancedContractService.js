@@ -226,9 +226,13 @@ export const getVotesCastCount = async (walletAddress) => {
   if (!addr || !POLL_ID) return 0;
   
   try {
+    // Get latest ledger to calculate a valid startLedger window
+    const latest = await server.getLatestLedger();
+    const start = Math.max(1, latest.sequence - 10000); // Scan last ~10k ledgers
+
     // Get all events for this contract and filter in JS for reliability
     const events = await server.getEvents({
-      startLedger: 1, // Will be auto-corrected by server if needed
+      startLedger: start,
       filters: [
         {
           type: "contract",
