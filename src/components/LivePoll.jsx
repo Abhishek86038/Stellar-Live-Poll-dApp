@@ -47,8 +47,12 @@ const LivePoll = ({ walletAddress }) => {
     setStatus({ type: 'info', msg: 'Signing transaction...' });
     try {
       await advancedService.castAdvancedVote(walletAddress, pollId, selectedOption, voteAmount);
-      setStatus({ type: 'success', msg: 'Vote cast successfully!' });
-      fetchPoll();
+      setStatus({ type: 'success', msg: 'Vote cast successfully! Refreshing results...' });
+      
+      // Wait a bit for ledger to settle then fetch
+      setTimeout(() => {
+        fetchPoll();
+      }, 2000);
     } catch (err) {
       setStatus({ type: 'error', msg: err.message || 'Vote failed' });
     } finally {
