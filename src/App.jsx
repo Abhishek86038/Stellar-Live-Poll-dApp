@@ -40,7 +40,6 @@ const App = () => {
               onConnect={setWalletAddress} 
               onDisconnect={() => setWalletAddress(null)} 
             />
-            <EventStream />
           </aside>
 
           <section className="app-content">
