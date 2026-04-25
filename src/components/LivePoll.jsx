@@ -110,19 +110,31 @@ const LivePoll = ({ walletAddress }) => {
           {pollData ? (
             <div className="poll-content">
               <h3 className="poll-question">{pollData.question}</h3>
-              <div className="poll-options">
-                {pollData.options.map((opt, i) => (
-                  <label key={i} className={`poll-option ${selectedOption === i ? 'selected' : ''}`}>
-                    <input 
-                      type="radio" 
-                      name="poll" 
-                      checked={selectedOption === i} 
-                      onChange={() => setSelectedOption(i)} 
-                    />
-                    <span className="opt-text">{opt}</span>
-                    <span className="opt-votes">{Math.floor(Number(pollData.votes[i]) / 10000000)} votes</span>
-                  </label>
-                ))}
+              <div className="options-grid">
+                {pollData.options.map((opt, i) => {
+                  const totalVotes = pollData.votes.reduce((a, b) => Number(a) + Number(b), 0);
+                  const optionVotes = Number(pollData.votes[i]);
+                  const percent = totalVotes > 0 ? Math.round((optionVotes / totalVotes) * 100) : 0;
+                  
+                  return (
+                    <div 
+                      key={i} 
+                      className={`option-item ${selectedOption === i ? 'selected' : ''}`}
+                      onClick={() => setSelectedOption(i)}
+                    >
+                      <div className="progress-bar" style={{ width: `${percent}%` }}></div>
+                      <div className="option-content">
+                        <div className="vote-info">
+                          <span className="opt-text">{opt}</span>
+                        </div>
+                        <div className="vote-stats">
+                          <span className="vote-count">{Math.floor(optionVotes / 10000000)} votes</span>
+                          <span className="percentage">{percent}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
               <div className="vote-controls">
                 <input 
