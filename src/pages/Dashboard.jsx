@@ -59,32 +59,40 @@ const Dashboard = ({ walletAddress }) => {
             <h3>XPOLL Balance</h3>
           </div>
           <div className="stat-value">{balance} <span className="denom">XPOLL</span></div>
-          {/* XLM balance hidden for now as requested */}
+          <div className="stat-footer">
+            <span className="dot success"></span> Real-time Balance
+          </div>
         </div>
 
-        <div className="glass-panel stat-card anim-fade-in">
-          <TrendingUp size={24} className="icon-cyan" />
-          <div className="stat-label">Polls Created</div>
-          <div className="stat-small-value">{stats.pollsCreated}</div>
+        <div className="glass-panel stat-card anim-fade-in mini-card">
+          <TrendingUp size={28} className="icon-cyan" />
+          <div className="stat-info">
+            <div className="stat-label">Polls Created</div>
+            <div className="stat-small-value">{stats.pollsCreated}</div>
+          </div>
         </div>
       </div>
 
       <div className="recent-activity-section glass-panel mt-6 anim-fade-in">
-        <div className="flex justify-between items-center mb-4">
+        <div className="activity-header">
+          <Clock size={20} className="icon-blue" />
           <h3>Recent Blockchain Activity</h3>
-          {loading && <small className="pulse-blue">Syncing...</small>}
+          {loading && <div className="loader-mini"></div>}
         </div>
         <div className="activity-list">
           {activity.length > 0 ? (
             activity.map((tx, i) => (
               <div key={i} className="activity-item">
-                <span className={`dot ${tx.successful ? 'success' : 'error'}`}></span>
-                <span className="activity-text">
-                  Transaction: {tx.hash.substring(0, 12)}...
-                </span>
-                <span className="activity-time">
-                  {new Date(tx.created_at).toLocaleTimeString()}
-                </span>
+                <div className="tx-icon">
+                  <span className={`dot ${tx.successful ? 'success' : 'error'}`}></span>
+                </div>
+                <div className="tx-details">
+                  <span className="tx-hash">TX: {tx.hash.substring(0, 16)}...</span>
+                  <span className="tx-time">{new Date(tx.created_at).toLocaleTimeString()}</span>
+                </div>
+                <div className="tx-status">
+                  {tx.successful ? 'Success' : 'Failed'}
+                </div>
               </div>
             ))
           ) : (
