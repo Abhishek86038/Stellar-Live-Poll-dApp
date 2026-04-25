@@ -70,18 +70,6 @@ const Dashboard = ({ walletAddress }) => {
           <div className="stat-label">Polls Created</div>
           <div className="stat-small-value">{stats.pollsCreated}</div>
         </div>
-
-        <div className="glass-panel stat-card anim-fade-in">
-          <Award size={24} className="icon-aqua" />
-          <div className="stat-label">Rewards Earned</div>
-          <div className="stat-small-value">{stats.rewardsEarned} XP</div>
-        </div>
-
-        <div className="glass-panel stat-card anim-fade-in">
-          <Clock size={24} className="icon-blue" />
-          <div className="stat-label">Votes Cast</div>
-          <div className="stat-small-value">{stats.votesCast}</div>
-        </div>
       </div>
 
       <div className="recent-activity-section glass-panel mt-6 anim-fade-in">
