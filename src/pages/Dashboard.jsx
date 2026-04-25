@@ -32,7 +32,7 @@ const Dashboard = ({ walletAddress }) => {
       // Check for first 20 polls now that it's safe
       let count = 0;
       for (let i = 1; i <= 20; i++) {
-        const p = await advancedService.getAdvancedPollResults(i);
+        const p = await advancedService.getAdvancedPollResults(i, walletAddress);
         if (p) count = i;
         else break; // Stop when no more polls are found
       }

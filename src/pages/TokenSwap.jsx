@@ -15,7 +15,7 @@ const TokenSwap = ({ walletAddress }) => {
       const [xpollBal, xlmBal, pool] = await Promise.all([
         advancedService.getTokenBalance(walletAddress),
         advancedService.getNativeBalance(walletAddress),
-        advancedService.getPoolReserves()
+        advancedService.getPoolReserves(walletAddress)
       ]);
       setBalances({ xpoll: xpollBal, xlm: xlmBal });
       setReserves({ xpoll: Number(pool.xpoll), native: Number(pool.native) });

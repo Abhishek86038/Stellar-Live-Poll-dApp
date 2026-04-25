@@ -24,12 +24,13 @@ const getAddr = (wallet) => {
   return wallet.address || "";
 };
 
-// Simulate a read-only contract call safely, return native value or null
-const simulateRead = async (contractId, method, ...args) => {
+// Simulate a read-only contract call safely
+const simulateRead = async (contractId, method, walletAddress, ...args) => {
   try {
+    const addr = getAddr(walletAddress) || "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF";
     const contract = new StellarSdk.Contract(contractId);
-    const dummy = new StellarSdk.Account("GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF", "0");
-    const tx = new StellarSdk.TransactionBuilder(dummy, { fee: "100", networkPassphrase: NETWORK_PASSPHRASE })
+    const source = new StellarSdk.Account(addr, "0");
+    const tx = new StellarSdk.TransactionBuilder(source, { fee: "100", networkPassphrase: NETWORK_PASSPHRASE })
       .addOperation(contract.call(method, ...args))
       .setTimeout(30).build();
     const sim = await server.simulateTransaction(tx);
@@ -115,7 +116,7 @@ const submitTx = async (walletAddress, buildFn) => {
 export const getTokenBalance = async (walletAddress) => {
   const addr = getAddr(walletAddress);
   if (!addr || !TOKEN_ID) return "0.00";
-  const raw = await simulateRead(TOKEN_ID, "balance_of", new StellarSdk.Address(addr).toScVal());
+  const raw = await simulateRead(TOKEN_ID, "balance_of", walletAddress, new StellarSdk.Address(addr).toScVal());
   if (raw === null) return "0.00";
   const n = Number(raw) / 10000000;
   return n > 0 ? n.toFixed(2) : Number(raw).toString();
@@ -146,9 +147,9 @@ export const getRecentActivity = async (walletAddress) => {
   } catch (e) { return []; }
 };
 
-export const getPoolReserves = async () => {
+export const getPoolReserves = async (walletAddress) => {
   if (!POOL_ID) return { xpoll: '0.00', native: '0.00' };
-  const raw = await simulateRead(POOL_ID, "get_reserves");
+  const raw = await simulateRead(POOL_ID, "get_reserves", walletAddress);
   if (!raw || !Array.isArray(raw)) return { xpoll: '0.00', native: '0.00' };
   return {
     xpoll:  (Number(raw[0]) / 10000000).toFixed(2),
@@ -156,9 +157,9 @@ export const getPoolReserves = async () => {
   };
 };
 
-export const getAdvancedPollResults = async (pollId) => {
+export const getAdvancedPollResults = async (pollId, walletAddress) => {
   if (!POLL_ID) return null;
-  return await simulateRead(POLL_ID, "get_poll_info",
+  return await simulateRead(POLL_ID, "get_poll_info", walletAddress,
     StellarSdk.nativeToScVal(Number(pollId), { type: "u32" })
   );
 };

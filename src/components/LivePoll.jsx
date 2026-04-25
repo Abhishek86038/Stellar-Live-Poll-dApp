@@ -23,7 +23,7 @@ const LivePoll = ({ walletAddress }) => {
     if (!pollId) return;
     setLoading(true);
     try {
-      const data = await advancedService.getAdvancedPollResults(pollId);
+      const data = await advancedService.getAdvancedPollResults(pollId, walletAddress);
       if (data && data.question) {
         setPollData(data);
       } else {
@@ -155,6 +155,26 @@ const LivePoll = ({ walletAddress }) => {
                 <button className="btn btn-primary" onClick={handleVote} disabled={loading}>
                   {loading ? 'Processing...' : 'Cast Vote'}
                 </button>
+                
+                {/* Admin/Creator only: Close Poll */}
+                {walletAddress && pollData.creator === walletAddress && (
+                  <button 
+                    className="btn btn-danger ml-2" 
+                    onClick={async () => {
+                      if (!window.confirm("Are you sure you want to close this poll?")) return;
+                      setLoading(true);
+                      try {
+                        await advancedService.closePoll(walletAddress, pollId);
+                        alert("Poll closed successfully!");
+                        fetchPoll();
+                      } catch (err) { alert(err.message); }
+                      finally { setLoading(false); }
+                    }}
+                    disabled={loading}
+                  >
+                    Close Poll
+                  </button>
+                )}
               </div>
             </div>
           ) : (
